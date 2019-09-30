@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap 100,200,300,400,500,600,700 | exo 100,200,300,400,500,600,700');
+
+/*--- colors*/
+.bg-color-name-title{
+    background-color: #676767;
+}
+.ui-menu-color-home
+    
+    /*------- headings*/
+
+
+header{
+    margin: 0;
+}
+.logo {
+    background:url("../images/johann.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 360px;
+    transition: all .5s ease-in-out;
+    -moz-transition: all .5s ease-in-out;
+    -webkit-transition: all .5s ease-in-out;
+}
+
+.name{
+    font-family: "exo", sans-serif;
+    font-weight: 100;
+    font-size: 40px;
+    margin-top: 50px;
+    color: #ffffff;
+}
+.title{
+    font-family: "roboto", sans-serif;
+    font-weight: 200;
+    font-size: 28px;
+    margin-top: 20px;
+    margin-bottom: 90px;
+    color: #ffffff;
+}
