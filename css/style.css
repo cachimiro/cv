@@ -4,6 +4,7 @@
 
 .bg-color-name-title {
     background-color: #676767;
+
 }
 
 .bg-color-three-reasons {
@@ -64,7 +65,9 @@ h4 {
 }
 
 .inline-block {
-    display: inline-block;
+    display: inline;
+    
+
 
 }
 
