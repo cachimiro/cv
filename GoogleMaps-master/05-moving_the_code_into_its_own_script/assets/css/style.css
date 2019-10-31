@@ -127,18 +127,6 @@ header {
     -moz-transition: all .5s ease-in-out;
     -webkit-transition: all .5s ease-in-out;
 }
-.menucontainer {
-    font-size: 0;
-}
-
-
-
-#nav li {
-    font-size: 20px;
-    padding: 0;
-
-}
-
 
 .name {
     font-family: "Exo", sans-serif;
@@ -375,6 +363,14 @@ footer .cv-pdf i:hover {
     margin-bottom: 30px;
 }
 
+
+/*--------------------------------------------Map*/
+
+div#map {
+    min-height: 360px;
+}
+
+
 /*--------------------------------------------Contact*/
 
 .contact-heading {
@@ -398,11 +394,6 @@ button[type="submit"] {
     color: #fafafa;
 }
 
-/*--------------------------------------------Map*/
-div#map {
-    min-height: 360px;
-}
-
 /*--------------------------------------------Media Queries*/
 
 @media(min-width: 992px) {
@@ -419,3 +410,4 @@ div#map {
         max-width: 50%;
     }
 }
+
