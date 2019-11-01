@@ -10,6 +10,14 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.1.1/css/hover-min.css" type="text/css" />
     <link rel="stylesheet" href="assets/css/style.css" type="text/css" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@2.4.0/dist/email.min.js">
+    </script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("user_UmSeo27b55xmNHfUBgKB0");
+            
+        })();
+    </script>
 </head>
 
 <body>
@@ -57,6 +65,7 @@
                 <h5 class="uppercase text-center">Let's work together</h5>
             </div>
             <div class="center-form">
+                <form onsubmit="return sendMail(this);"method="POST">
                 <input type="text" name="name" class="form-control" id="fullname" placeholder="Name" required/>
                 <input type="text" name="emailaddress" class="form-control" id="emailaddress" placeholder="Email" required/>
                 <textarea rows="5" name="projectsummary" class="form-control" id="projectsummary" placeholder="Project Description" required></textarea>
@@ -93,6 +102,7 @@
             </div>
         </div>
     </footer>
+    <script type="text/javascript" src="assets/js/send-email.js"></script>
 </body>
 
 </html>
