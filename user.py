@@ -56,7 +56,7 @@ class User(UserMixin):
                         username=user_data['username'],
                         email=user_data['email'],
                         password_hash=user_data['password_hash'],
-                        is_active=bool(user_data['is_active']),
+                        db_is_active=bool(user_data['is_active']), # Pass to db_is_active
                         is_admin=bool(user_data['is_admin']))
         return None
 

@@ -77,15 +77,15 @@ def register():
             existing_user_by_name = User.get_by_username(username)
             if existing_user_by_name:
                 error = f"Username '{username}' is already taken."
-            # Optional: Check for existing email if it's meant to be unique and provided
-            # if email:
-            #     conn = database.get_db_connection()
-            #     cursor = conn.cursor()
-            #     cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
-            #     existing_user_by_email = cursor.fetchone()
-            #     conn.close()
-            #     if existing_user_by_email:
-            #         error = f"Email '{email}' is already registered."
+
+            if not error and email: # Only check email if username is fine and email is provided
+                conn = database.get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+                existing_user_by_email = cursor.fetchone()
+                conn.close()
+                if existing_user_by_email:
+                    error = f"Email '{email}' is already registered."
 
         if error is None:
             try:
