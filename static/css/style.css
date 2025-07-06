@@ -10,82 +10,365 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f4f7f6; /* Light grayish background */
+    /* display: flex; flex-direction: column; min-height: 100vh; -- Old body structure */
+}
+
+html, body {
+    height: 100%;
+    margin: 0; /* Ensure no default margins */
+    /* overflow: hidden; -- Let main-content-wrapper or main-canvas handle its own overflow */
+}
+
+/* No .app-container needed as body can be the flex container or just a simple block */
+
+.left-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background-color: #004d40; /* Dark Green Theme */
+    color: #e0f2f1; /* Light text for dark green theme */
+    padding: 0;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    z-index: 200; /* High z-index for fixed sidebar */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Subtle shadow for sidebar */
 }
 
-.container {
-    width: 90%;
-    max-width: 1100px;
-    margin: auto;
-    padding: 0 20px;
-}
-
-/* Navbar */
-.navbar {
-    background-color: #2c3e50; /* Dark blue/grey */
-    color: #ecf0f1; /* Light grey text */
-    padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.navbar .container {
+.main-content-wrapper {
+    margin-left: 220px; /* Account for the fixed sidebar */
+    width: calc(100% - 220px); /* Take up remaining width */
+    height: 100vh; /* Full viewport height */
     display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent wrapper from causing body scrollbars */
+}
+
+.global-top-bar {
+    background-color: #ffffff; /* White top bar */
+    border-bottom: 1px solid #e0e0e0; /* Subtle border */
+    display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding: 0 32px; /* Generous gutters */
+    height: 56px;
+    min-height: 56px; /* Prevent shrinking */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    /* z-index: 100; -- Not strictly needed if main-content-wrapper is separate */
+}
+
+.main-canvas {
+    flex-grow: 1; /* Takes up remaining space in main-content-wrapper */
+    background-color: #ffffff; /* White background for canvas */
+    overflow-y: auto; /* Allow vertical scrolling for canvas content */
+    padding: 32px; /* Generous gutters */
+    /* height: calc(100vh - 56px); -- Not needed due to flex-grow */
+}
+
+
+/* Old .container, .navbar, .content-area, .footer can be removed or heavily refactored */
+/* For now, let's comment them out to avoid conflicts, will remove later if truly unused */
+/*
+.container { ... }
+.navbar { ... }
+.navbar .container { ... }
+.navbar-brand { ... }
+.navbar-nav { ... }
+.navbar-nav li { ... }
+.navbar-nav a { ... }
+.navbar-nav a:hover { ... }
+.navbar-text { ... }
+.content-area { ... }
+.footer { ... }
+*/
+
+/* Flash messages container - should be inside main-canvas */
+.flash-messages-container {
+    margin-bottom: 1.5rem; /* Space below flash messages */
+}
+
+/* --- Global Top Bar Components --- */
+.global-top-bar {
+    /* ... existing styles ... */
+    font-size: 0.9rem; /* Slightly smaller base font for top bar */
+}
+
+.top-bar-left-zone,
+.top-bar-center-zone,
+.top-bar-right-zone {
+    display: flex;
     align-items: center;
 }
 
-.navbar-brand {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #ecf0f1;
-    text-decoration: none;
+.top-bar-left-zone {
+    flex-basis: 25%; /* Approx 25% */
+    justify-content: flex-start;
+}
+.persona-label {
+    margin-right: 8px;
+    color: #555;
+    font-size: 0.85rem;
+}
+.persona-dropdown {
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.85rem;
+    max-width: 150px; /* Prevent it from getting too wide */
 }
 
-.navbar-nav {
-    list-style: none;
+.top-bar-center-zone {
+    flex-basis: 20%; /* Approx 20% */
+    justify-content: center;
+}
+.device-icon {
+    margin: 0 8px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #777;
+    font-size: 1.2rem; /* Adjust for better visual weight of Unicode chars */
+}
+.device-icon.active {
+    background-color: #e0e0e0; /* Highlight for active device */
+    color: #333;
+}
+
+.top-bar-right-zone {
+    flex-basis: 55%; /* Approx 55% */
+    justify-content: flex-end;
+}
+.page-title-placeholder {
+    margin-right: 16px;
+    color: #777; /* Subtle page title */
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.action-button-dark {
+    background-color: #2c3e50; /* Dark background */
+    color: #fff;
+    padding: 6px 12px; /* Compact action button */
+    font-size: 0.85rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.action-button-dark:hover {
+    background-color: #34495e; /* Slightly lighter on hover */
+}
+
+
+/* --- Left Sidebar Components --- */
+.sidebar-header {
+    padding: 18px 20px; /* Matches top bar height roughly for vertical rhythm, adjust as needed */
+    /* height: 56px; */ /* Match top-bar height */
     display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(224, 242, 241, 0.2); /* Subtle border in sidebar color scheme */
+}
+.sidebar-emblem {
+    font-size: 1.5rem; /* Placeholder size */
+    margin-right: 10px;
+    color: #80cbc4; /* Lighter teal for emblem */
+}
+.sidebar-product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff; /* White product name */
+    margin: 0; /* Reset heading margin */
 }
 
-.navbar-nav li {
-    margin-left: 20px;
+.sidebar-nav {
+    flex-grow: 1; /* Takes available space, pushes user-footer down */
+    padding-top: 20px;
 }
-
-.navbar-nav a {
-    color: #ecf0f1;
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #b2dfdb; /* Lighter green/teal for nav links */
     text-decoration: none;
-    padding: 0.5rem;
-    transition: color 0.3s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 0.95rem;
 }
-
-.navbar-nav a:hover {
-    color: #1abc9c; /* Teal accent */
+.sidebar-nav li a:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #ffffff;
 }
-
-.navbar-text {
-    color: #bdc3c7; /* Lighter text for non-link items */
-    margin-right: 15px; /* Spacing from other nav items */
-    padding: 0.5rem;
+.sidebar-nav li.active a {
+    background-color: #00695c; /* Slightly lighter green for active pill */
+    color: #ffffff;
+    font-weight: 500;
+    border-left: 3px solid #80cbc4; /* Active indicator */
+    padding-left: 17px; /* Adjust for border */
 }
-
-/* Content Area */
-.content-area {
-    flex-grow: 1; /* Ensures footer stays at the bottom */
-    padding-top: 30px;
-    padding-bottom: 30px;
-}
-
-/* Footer */
-.footer {
-    background-color: #34495e; /* Slightly lighter dark blue/grey */
-    color: #ecf0f1;
+.nav-icon {
+    margin-right: 12px;
+    font-size: 1rem; /* For Unicode icons, adjust if using font library */
+    width: 20px; /* Ensure alignment */
     text-align: center;
-    padding: 1rem 0;
-    margin-top: auto; /* Pushes footer to bottom if content is short */
+    color: #80cbc4; /* Icons get accent color */
+}
+.sidebar-nav li.active .nav-icon {
+    color: #ffffff; /* Active icon color */
 }
 
-/* Headings */
+
+.sidebar-user-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(224, 242, 241, 0.2);
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+}
+.user-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    background-color: #80cbc4; /* Teal placeholder */
+    border-radius: 50%;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #004d40; /* Dark green initial/icon on avatar */
+    font-weight: bold;
+}
+.user-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    line-height: 1.3;
+}
+.user-name {
+    font-weight: 500;
+    color: #ffffff;
+}
+.user-email {
+    color: #b2dfdb; /* Lighter text for email */
+    font-size: 0.75rem;
+}
+.user-caret {
+    font-size: 0.8rem;
+    margin-left: 10px;
+    cursor: pointer; /* Suggests interactivity */
+    color: #80cbc4;
+}
+/* Simple logout/login link styling in sidebar footer */
+.logout-link-sidebar, .login-link-sidebar {
+    color: #80cbc4;
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 4px 8px; /* Give it some clickable area */
+    margin-left: 10px; /* Space it from the caret */
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.logout-link-sidebar:hover, .login-link-sidebar:hover {
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+
+/* --- Main Canvas Components --- */
+
+/* Greeting Banner */
+.greeting-banner {
+    margin-bottom: 2rem; /* Generous space below banner */
+    text-align: center;
+}
+.greeting-banner h1 {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #2c3e50; /* Dark blue/grey from theme */
+}
+
+/* Section Heading */
+.section-heading-container {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0; /* Subtle line under heading */
+    padding-bottom: 0.75rem;
+}
+.section-heading {
+    font-size: 1.5rem;
+    font-weight: 500; /* Medium weight */
+    color: #34495e; /* Slightly lighter dark blue/grey */
+    margin: 0;
+}
+
+/* Controls Row */
+.controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+    gap: 1rem; /* Space between items if they wrap */
+}
+.search-control {
+    flex-grow: 1; /* Search takes available space */
+    margin-right: 1rem; /* Space before button if on same line */
+}
+.search-control input[type="search"].form-control { /* Specificity for search */
+    padding: 10px 15px; /* Standard padding for form controls */
+    border: 1px solid #bdc3c7; /* Grey outline */
+    /* width: 100%; -- Handled by flex-grow on parent or specific width */
+}
+.action-control .btn-add-new { /* Specific styling for the add new button */
+    background-color: #00695c; /* Sidebar's darker green */
+    color: #fff;
+    padding: 10px 20px; /* Standard button padding */
+    display: flex;
+    align-items: center;
+}
+.action-control .btn-add-new:hover {
+    background-color: #004d40; /* Darker shade from sidebar */
+}
+.btn-icon { /* For the '+' icon */
+    margin-right: 8px;
+    font-weight: bold;
+    font-size: 1.2em; /* Make '+' slightly larger */
+}
+
+
+/* Filter Chips */
+.filter-chips-container {
+    display: flex;
+    gap: 0.75rem; /* Spacing between chips */
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.filter-chip {
+    padding: 6px 16px;
+    font-size: 0.875rem;
+    border: 1px solid #bdc3c7; /* Light grey border */
+    border-radius: 16px; /* Pill shape */
+    background-color: #fff;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.filter-chip:hover {
+    border-color: #7f8c8d;
+    background-color: #f8f9fa;
+}
+.filter-chip.active {
+    background-color: #004d40; /* Dark green from sidebar for active/filled */
+    color: #fff;
+    border-color: #004d40;
+}
+
+
+/* Headings (general) */
 h1, h2, h3 {
     margin-bottom: 0.75rem;
     color: #2c3e50;
@@ -255,35 +538,61 @@ th, td {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .navbar .container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .navbar-nav {
-        margin-top: 10px;
-        flex-direction: column; /* Stack nav items */
-        width: 100%; /* Make them full width for easier tapping */
-    }
-    .navbar-nav li {
-        margin-left: 0;
-        margin-bottom: 5px;
-        width: 100%;
-    }
-    .navbar-nav a {
-        padding: 0.75rem 0; /* Larger tap area */
-        display: block; /* Make full width */
+    /* Sidebar: For now, remains fixed. If it needs to hide/toggle, that's a bigger change. */
+    /* Main content wrapper will be narrower. */
+    .main-content-wrapper {
+        /* width: 100%; If sidebar was hidden, this would take full width */
+        /* margin-left: 0; If sidebar was hidden */
     }
 
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
+    .global-top-bar {
+        padding: 0 15px; /* Reduce padding on smaller screens */
+        flex-wrap: wrap; /* Allow top bar content to wrap if needed */
+        height: auto; /* Allow height to adjust if content wraps */
+        min-height: 56px;
     }
-    .page-header h2 {
-        margin-bottom: 1rem; /* Space between title and button on mobile */
+    .top-bar-left-zone,
+    .top-bar-center-zone,
+    .top-bar-right-zone {
+        flex-basis: 100%; /* Allow each zone to take full width if they wrap */
+        justify-content: center; /* Center content within zones on mobile */
+        margin-bottom: 8px;
     }
-    .page-header .btn { /* Make button full width or more prominent */
+    .top-bar-left-zone { justify-content: flex-start; } /* Keep persona left */
+    .top-bar-right-zone { justify-content: flex-end; } /* Keep action button right */
+
+    .page-title-placeholder { display: none; } /* Hide page title on small screens to save space */
+    .persona-dropdown { max-width: none; width: 100%; } /* Full width dropdown */
+
+
+    /* Main Canvas Padding */
+    .main-canvas {
+        padding: 20px; /* Reduce padding on smaller screens */
+    }
+
+    /* Controls Row on mobile */
+    .controls-row {
+        /* flex-direction: column; -- Already has wrap, let's see how it behaves */
+        /* align-items: stretch; */
+    }
+    .search-control {
+        margin-right: 0; /* Remove right margin when items might wrap */
+        width: 100%; /* Make search full width */
+    }
+     .search-control input[type="search"].form-control {
         width: 100%;
-        text-align: center;
+    }
+    .action-control {
+        width: 100%; /* Make button container full width */
+    }
+    .action-control .btn-add-new {
+        width: 100%; /* Make button full width */
+        justify-content: center; /* Center button content */
+    }
+
+    /* Filter chips might also need to ensure they don't cause overflow if too many */
+    .filter-chips-container {
+        justify-content: flex-start; /* Align to start if they wrap */
     }
 
     /* Responsive table: Make it scrollable horizontally */
@@ -346,6 +655,69 @@ th, td {
 }
 .action-buttons .btn:last-child {
     margin-right: 0;
+}
+.action-buttons .btn-sm { /* Ensure consistent small size for action buttons */
+    padding: 5px 8px; /* Slightly smaller padding */
+    font-size: 0.9rem; /* For unicode icons, adjust if they look too big/small */
+    line-height: 1; /* Help align text/icons vertically */
+}
+
+
+/* New Data Table Styles */
+.companies-table th:first-child, /* Avatar column header */
+.companies-table td:first-child { /* Avatar column cell */
+    width: 50px; /* Fixed width for avatar column */
+    text-align: center;
+    padding-left: 10px; /* More specific padding */
+    padding-right: 10px;
+}
+
+.table-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    background-color: #00695c; /* Sidebar active green */
+    color: #fff;
+    border-radius: 50%;
+    display: inline-flex; /* Use inline-flex for centering content */
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px; /* Pill shape for badges */
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent; /* Base for outlines */
+}
+
+/* Example status badge colors (as per wireframe: soft yellow outline) */
+/* For now, let's use the "accent yellow" mentioned in the overall description */
+/* We need a yellow color. Let's define one. */
+:root {
+    --accent-yellow: #ffc107;
+    --accent-yellow-text: #333; /* Darker text for yellow background */
+    --accent-yellow-soft-bg: #fff9c4; /* Softer yellow bg */
+}
+
+.status-badge.status-pending { /* Assuming yellow is for pending */
+    background-color: var(--accent-yellow-soft-bg);
+    color: #856404; /* Dark yellow/brown text */
+    border: 1px solid var(--accent-yellow); /* Soft yellow outline */
+}
+.status-badge.status-active { /* Example for another status */
+    background-color: #e0f2f1; /* Light teal, from sidebar theme */
+    color: #004d40; /* Dark green text */
+    border: 1px solid #80cbc4;
+}
+.status-badge.status-on-hold { /* Example */
+    background-color: #f1f3f5; /* Light grey */
+    color: #495057; /* Darker grey text */
+    border: 1px solid #ced4da;
 }
 
 /* Authentication Forms */

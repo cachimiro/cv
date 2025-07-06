@@ -76,25 +76,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 <table class="companies-table">
                     <thead>
                         <tr>
-                        <th>ID</th>
+                        <th><!-- Avatar Col (empty header) --></th>
                         <th>Name</th>
-                        <th>URL</th>
-                        <th>Industry</th>
+                        <th>Contact Info</th> <!-- Was URL -->
+                        <th>Status</th> <!-- Was Industry -->
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
         companies.forEach(company => {
+            // For placeholders:
+            const avatarInitial = company.name ? company.name.charAt(0).toUpperCase() : '?';
+            // const contactInfo = company.url || 'N/A'; // Or re-purpose for email later
+            // For now, let's use URL for "Contact Info" to keep data flowing
+            const contactInfoDisplay = company.url ? `<a href="${escapeHTML(company.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(company.url)}</a>` : 'N/A';
+
+            // Placeholder for status - can cycle or be based on some data later
+            const statuses = ['Active', 'Pending', 'On Hold'];
+            const status = statuses[company.id % statuses.length]; // Example: cycle status
+            const statusBadgeClass = status.toLowerCase().replace(' ', '-'); // e.g., 'on-hold'
+
             tableHtml += `
                 <tr>
-                    <td>${company.id}</td>
+                    <td><div class="table-avatar-placeholder">${avatarInitial}</div></td>
                     <td>${escapeHTML(company.name)}</td>
-                    <td><a href="${escapeHTML(company.url || '')}" target="_blank" rel="noopener noreferrer">${escapeHTML(company.url || '')}</a></td>
-                    <td>${escapeHTML(company.industry || '')}</td>
+                    <td>${contactInfoDisplay}</td>
+                    <td><span class="status-badge status-${statusBadgeClass}">${escapeHTML(status)}</span></td>
                     <td class="action-buttons">
-                        <button class="btn btn-secondary btn-sm edit-btn" data-id="${company.id}">Edit</button>
-                        <button class="btn btn-danger btn-sm delete-btn" data-id="${company.id}">Delete</button>
+                        <button class="btn btn-secondary btn-sm edit-btn" data-id="${company.id}" title="Edit">&#9998;</button> <!-- Pencil icon -->
+                        <button class="btn btn-danger btn-sm delete-btn" data-id="${company.id}" title="Delete">&#128465;</button> <!-- Trash can icon -->
+                        <!-- Future: Per-row webhook push button -->
                     </td>
                 </tr>
             `;

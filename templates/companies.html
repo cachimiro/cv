@@ -1,11 +1,36 @@
 {% extends "layout.html" %}
 
-{% block title %}Companies - CompanyDB{% endblock %}
+{% block title %}Dashboard - Sway PR Data{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %} {# Sets the title in the top bar #}
+
+{% block page_header %}
+    <div class="greeting-banner">
+        <h1>Welcome back, {{ current_user.username if current_user.is_authenticated else "Guest" }}! 👋</h1>
+    </div>
+    <div class="section-heading-container">
+        <h2 class="section-heading">Company Data</h2>
+    </div>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h2>Companies</h2>
-    <button id="addNewCompanyBtn" class="btn btn-primary">Add New Company</button>
+<div class="controls-row">
+    <div class="search-control">
+        <input type="search" id="searchCompaniesInput" placeholder="Search companies..." class="form-control">
+        <!-- Search icon can be added later -->
+    </div>
+    <div class="action-control">
+        <button id="addNewCompanyBtn" class="btn btn-primary btn-add-new">
+            <span class="btn-icon">+</span> Add New Company
+        </button>
+    </div>
+</div>
+
+<div class="filter-chips-container">
+    <button class="filter-chip active">All</button>
+    <button class="filter-chip">Technology</button>
+    <button class="filter-chip">Finance</button>
+    <button class="filter-chip">Healthcare</button>
+    <!-- These are placeholders, functionality to be added later -->
 </div>
 
 <div id="companiesList">
@@ -13,7 +38,7 @@
     <p>Loading companies...</p>
 </div>
 
-<!-- Modal for Add/Edit Company -->
+<!-- Modal for Add/Edit Company (existing structure, will be styled later if needed) -->
 <div id="companyModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -24,17 +49,17 @@
             <input type="hidden" id="companyId" name="companyId">
             <div class="form-group">
                 <label for="name">Company Name:</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="name" name="name" class="form-control" required>
             </div>
             <div class="form-group">
                 <label for="url">Company URL:</label>
-                <input type="url" id="url" name="url">
+                <input type="url" id="url" name="url" class="form-control">
             </div>
             <div class="form-group">
                 <label for="industry">Industry:</label>
-                <input type="text" id="industry" name="industry">
+                <input type="text" id="industry" name="industry" class="form-control">
             </div>
-            <div class="form-actions text-center">
+            <div class="form-actions"> <!-- Removed text-center, new CSS handles alignment -->
                 <button type="submit" class="btn btn-primary">Save Company</button>
                 <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
             </div>
