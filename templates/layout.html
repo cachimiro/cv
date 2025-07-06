@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CompanyDB{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Future: Add favicon, other common head elements -->
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="navbar-brand">CompanyDB</a>
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('index') }}">Companies</a></li>
+                <!-- Future: Add links for dynamic tables, etc. -->
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container content-area">
+        {% block content %}
+        <!-- Page specific content will go here -->
+        {% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; <span id="current-year"></span> CompanyDB. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

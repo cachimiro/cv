@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}Companies - CompanyDB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Companies</h2>
+    <button id="addNewCompanyBtn" class="btn btn-primary">Add New Company</button>
+</div>
+
+<div id="companiesList">
+    <!-- Companies will be loaded here by JavaScript -->
+    <p>Loading companies...</p>
+</div>
+
+<!-- Modal for Add/Edit Company -->
+<div id="companyModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle" class="modal-title">Add Company</h3>
+            <button id="closeModalBtn" class="close-btn">&times;</button>
+        </div>
+        <form id="companyForm">
+            <input type="hidden" id="companyId" name="companyId">
+            <div class="form-group">
+                <label for="name">Company Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="url">Company URL:</label>
+                <input type="url" id="url" name="url">
+            </div>
+            <div class="form-group">
+                <label for="industry">Industry:</label>
+                <input type="text" id="industry" name="industry">
+            </div>
+            <div class="form-actions text-center">
+                <button type="submit" class="btn btn-primary">Save Company</button>
+                <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Specific JS for this page could go here if needed, but main.js will handle most -->
+{% endblock %}
