@@ -23,9 +23,25 @@ def create_tables():
         )
     ''')
 
+    # Create users table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT UNIQUE,
+            password_hash TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            is_admin BOOLEAN DEFAULT FALSE
+            -- Add other fields like created_at, last_login later if needed
+        )
+    ''')
+    # Consider adding an index on username and email for faster lookups
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
+
     conn.commit()
     conn.close()
-    print("Database tables checked/created successfully.")
+    print("Database tables (companies, users) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""

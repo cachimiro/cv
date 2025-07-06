@@ -11,9 +11,17 @@
     <nav class="navbar">
         <div class="container">
             <a href="{{ url_for('index') }}" class="navbar-brand">CompanyDB</a>
+            <!-- Will rename CompanyDB to Sway PR Data later -->
             <ul class="navbar-nav">
-                <li><a href="{{ url_for('index') }}">Companies</a></li>
-                <!-- Future: Add links for dynamic tables, etc. -->
+                {% if current_user.is_authenticated %}
+                    <li><span class="navbar-text">Logged in as: {{ current_user.username }}</span></li>
+                    <li><a href="{{ url_for('index') }}">Companies</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                {% endif %}
+                <!-- Future: Add links for dynamic tables, etc., protected by login -->
             </ul>
         </div>
     </nav>

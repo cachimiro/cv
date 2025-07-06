@@ -1,12 +1,35 @@
-from flask import Flask, jsonify, request, render_template # Added render_template
+from flask import Flask, jsonify, request, render_template, flash, redirect, url_for # Added flash, redirect, url_for
 import database # Your existing database.py
 import os # For potential API key access
 # from functools import wraps # For API key decorator if used later
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from user import User # Import the User model
 
 # Initialize Flask app
 app = Flask(__name__)
 
+# --- Flask App Configuration ---
+# IMPORTANT: Set a strong, random secret key in a real application!
+# You can generate one using: import os; os.urandom(24).hex()
+# Store it securely, e.g., in an environment variable.
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'a_very_default_and_insecure_secret_key_123!')
+app.config['SESSION_COOKIE_SECURE'] = False # Set to True if using HTTPS (recommended for production)
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # Or 'Strict'
+
+# --- Flask-Login Configuration ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login' # The name of the view (route function) for the login page
+login_manager.login_message_category = 'info' # For flash messages
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Flask-Login user_loader callback."""
+    return User.get_by_id(int(user_id))
+
 # Configuration for API Key (example - store your actual key securely, e.g., env variable)
+# This API key is separate from user authentication. Used for programmatic API access.
 EXPECTED_API_KEY = os.environ.get("COMPANY_API_KEY", "default_test_key_12345")
 
 def is_authenticated(api_key):
@@ -23,16 +46,132 @@ def is_authenticated(api_key):
 #         return f(*args, **kwargs)
 #     return decorated_function
 
+# --- Web Page Routes ---
+
 @app.route('/')
-def index(): # This will be our main page serving companies.html
+@login_required
+def index():
     """Serves the main companies page."""
     return render_template('companies.html')
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index')) # If already logged in, go to main page
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email') # Optional
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        error = None
+        if not username:
+            error = 'Username is required.'
+        elif not password:
+            error = 'Password is required.'
+        elif password != confirm_password:
+            error = 'Passwords do not match.'
+
+        if error is None:
+            existing_user_by_name = User.get_by_username(username)
+            if existing_user_by_name:
+                error = f"Username '{username}' is already taken."
+            # Optional: Check for existing email if it's meant to be unique and provided
+            # if email:
+            #     conn = database.get_db_connection()
+            #     cursor = conn.cursor()
+            #     cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            #     existing_user_by_email = cursor.fetchone()
+            #     conn.close()
+            #     if existing_user_by_email:
+            #         error = f"Email '{email}' is already registered."
+
+        if error is None:
+            try:
+                # For now, first user registered can be an admin, or set is_admin=False by default
+                # This logic can be refined later (e.g. only existing admin can create other admins)
+                conn = database.get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(id) as count FROM users")
+                user_count = cursor.fetchone()['count']
+                conn.close()
+                is_first_user_admin = user_count == 0 # Make the first registered user an admin
+
+                new_user = User(id=None, username=username, email=email if email else None, is_admin=is_first_user_admin)
+                new_user.set_password(password)
+                new_user.save() # The save method in User class handles DB insertion
+
+                flash('Registration successful! Please log in.', 'success')
+                return redirect(url_for('login'))
+            except ValueError as e: # Catch custom errors from User.save or validation
+                error = str(e)
+            except database.sqlite3.IntegrityError: # Catch DB level unique constraint errors
+                 error = f"Username or Email already exists." # More generic for DB
+            except Exception as e:
+                print(f"Error during registration: {e}")
+                error = "An unexpected error occurred during registration. Please try again."
+
+        if error:
+            flash(error, 'danger')
+
+    # For GET request or if POST had an error, render the registration page
+    # Pass None for form if not using Flask-WTF, or pass form object if using it
+    return render_template('register.html', form=None)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index')) # If already logged in, go to main page
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        # remember = True if request.form.get('remember') else False # For "Remember Me"
+
+        user = User.get_by_username(username)
+
+        if user and user.check_password(password):
+            if user.is_active:
+                login_user(user) # Can add 'remember=remember'
+                # flash(f'Logged in successfully as {user.username}!', 'success') # Optional success flash
+
+                # Redirect to the page the user was trying to access, or to index
+                next_page = request.args.get('next')
+                return redirect(next_page or url_for('index'))
+            else:
+                flash('Your account is inactive. Please contact support.', 'warning')
+        else:
+            flash('Invalid username or password. Please try again.', 'danger')
+
+    return render_template('login.html', form=None) # Pass None for form if not using Flask-WTF
+
+@app.route('/logout')
+@login_required # User must be logged in to log out
+def logout():
+    logout_user()
+    flash('You have been logged out successfully.', 'success')
+    return redirect(url_for('login'))
+
+
 # --- API Endpoints ---
+# All API endpoints should also require login if they are primarily supporting the web UI
+# For external programmatic access, the X-API-Key mechanism would be used in conjunction or as an alternative.
 
 @app.route('/api/companies', methods=['GET'])
-# @require_api_key
+@login_required
+# @require_api_key # This would be for separate programmatic API key auth
 def get_all_companies():
+    # For UI-driven requests, current_user is available.
+    # For pure API key access, you might bypass session login or check API key first.
+    # If API key is present and valid, could proceed. Otherwise, rely on session.
+    # Example:
+    # provided_api_key = request.headers.get('X-API-Key')
+    # if is_authenticated(provided_api_key):
+    #     pass # API key auth successful
+    # elif not current_user.is_authenticated: # Check session auth if no/invalid API key
+    #     return jsonify({"error": "Unauthorized"}), 401
+
     # provided_key = request.headers.get('X-API-Key')
     # if not is_authenticated(provided_key):
     #     return jsonify({"error": "Unauthorized. API key is missing or invalid."}), 401
@@ -45,8 +184,10 @@ def get_all_companies():
         return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/companies/<int:company_id>', methods=['GET'])
+@login_required
 # @require_api_key
 def get_company(company_id):
+    # Similar logic for API key vs session auth can be applied here if needed
     # provided_key = request.headers.get('X-API-Key')
     # if not is_authenticated(provided_key):
     #     return jsonify({"error": "Unauthorized. API key is missing or invalid."}), 401
@@ -61,6 +202,7 @@ def get_company(company_id):
         return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/companies', methods=['POST'])
+@login_required
 # @require_api_key
 def create_company():
     # provided_key = request.headers.get('X-API-Key')
@@ -90,6 +232,7 @@ def create_company():
         return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/companies/<int:company_id>', methods=['PUT'])
+@login_required
 # @require_api_key
 def update_company_api(company_id): # Renamed to avoid conflict with database.update_company
     # provided_key = request.headers.get('X-API-Key')
@@ -130,6 +273,7 @@ def update_company_api(company_id): # Renamed to avoid conflict with database.up
         return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/companies/<int:company_id>', methods=['DELETE'])
+@login_required
 # @require_api_key
 def delete_company_api(company_id): # Renamed
     # provided_key = request.headers.get('X-API-Key')

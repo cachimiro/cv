@@ -63,6 +63,12 @@ body {
     color: #1abc9c; /* Teal accent */
 }
 
+.navbar-text {
+    color: #bdc3c7; /* Lighter text for non-link items */
+    margin-right: 15px; /* Spacing from other nav items */
+    padding: 0.5rem;
+}
+
 /* Content Area */
 .content-area {
     flex-grow: 1; /* Ensures footer stays at the bottom */
@@ -340,4 +346,72 @@ th, td {
 }
 .action-buttons .btn:last-child {
     margin-right: 0;
+}
+
+/* Authentication Forms */
+.auth-container {
+    max-width: 450px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.auth-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+}
+
+.auth-form .form-control { /* More specific selector for inputs in auth forms */
+    width: 100%;
+    padding: 12px; /* Slightly larger padding for auth inputs */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 0.5rem; /* Space below input before next label/input */
+}
+.auth-form .form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.auth-form .btn-block { /* Button that takes full width */
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
 }
