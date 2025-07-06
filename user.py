@@ -3,14 +3,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import database # To interact with the db
 
 class User(UserMixin):
-    def __init__(self, id, username, email=None, password_hash=None, is_active=True, is_admin=False):
+    def __init__(self, id, username, email=None, password_hash=None, db_is_active=True, is_admin=False): # Renamed is_active to db_is_active
         self.id = id
         self.username = username
         self.email = email
         self.password_hash = password_hash
-        self.is_active = is_active # For Flask-Login
+        self.active_status = db_is_active # Internal storage for the active status from DB
         self.is_admin = is_admin
-        # UserMixin provides: is_authenticated, is_active, is_anonymous, get_id()
+        # UserMixin provides: is_authenticated, is_active (property), is_anonymous, get_id()
+
+    @property
+    def is_active(self): # This is the property Flask-Login UserMixin expects
+        return self.active_status
 
     def set_password(self, password):
         """Hashes and sets the user's password."""
@@ -35,8 +39,8 @@ class User(UserMixin):
                         username=user_data['username'],
                         email=user_data['email'],
                         password_hash=user_data['password_hash'],
-                        is_active=bool(user_data['is_active']), # Ensure boolean
-                        is_admin=bool(user_data['is_admin']))   # Ensure boolean
+                        db_is_active=bool(user_data['is_active']),
+                        is_admin=bool(user_data['is_admin']))
         return None
 
     @staticmethod
@@ -61,19 +65,15 @@ class User(UserMixin):
         conn = database.get_db_connection()
         cursor = conn.cursor()
 
-        # For simplicity, this save method assumes if self.id is None, it's a new user.
-        # A more robust way for new users might be a dedicated create_user static method.
-        # This example focuses on saving a new user instance that has had its password set.
-
         if self.id is None: # New user
             if not self.password_hash:
                 raise ValueError("Password hash must be set for a new user before saving.")
             try:
                 cursor.execute(
                     "INSERT INTO users (username, email, password_hash, is_active, is_admin) VALUES (?, ?, ?, ?, ?)",
-                    (self.username, self.email, self.password_hash, self.is_active, self.is_admin)
+                    (self.username, self.email, self.password_hash, self.active_status, self.is_admin)
                 )
-                self.id = cursor.lastrowid # Get the ID of the newly inserted user
+                self.id = cursor.lastrowid
                 print(f"User {self.username} created with ID {self.id}")
             except database.sqlite3.IntegrityError as e:
                 # This could be due to unique constraint on username or email
@@ -88,7 +88,7 @@ class User(UserMixin):
             try:
                 cursor.execute(
                     "UPDATE users SET username = ?, email = ?, password_hash = ?, is_active = ?, is_admin = ? WHERE id = ?",
-                    (self.username, self.email, self.password_hash, self.is_active, self.is_admin, self.id)
+                    (self.username, self.email, self.password_hash, self.active_status, self.is_admin, self.id)
                 )
                 print(f"User {self.username} (ID: {self.id}) updated.")
             except database.sqlite3.IntegrityError as e:
