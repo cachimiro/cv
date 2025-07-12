@@ -39,9 +39,49 @@ def create_tables():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
 
+    # --- New tables for Sway PR Data ---
+
+    # Journalists Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS journalists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT, nameSuffix TEXT, outletName TEXT, phone TEXT, ModeOfAddress TEXT,
+            Honorific TEXT, JobTitle TEXT, MediaType TEXT, Email TEXT, AddressLine1 TEXT,
+            AddressLine2 TEXT, City TEXT, County TEXT, State TEXT, PostalCode TEXT,
+            Country TEXT, Twitter TEXT, Facebook TEXT, Instagram TEXT, Pinterest TEXT,
+            YouTube TEXT, ShadowEmail TEXT, ShadowPhone TEXT, ShadowMobile TEXT,
+            ShadowWebsite TEXT, ShadowFacebook TEXT, ShadowTwitter TEXT, ShadowLinkedIn TEXT,
+            ShadowAddressLine1 TEXT, ShadowAddressLine2 TEXT, ShadowCity TEXT,
+            ShadowCounty TEXT, ShadowPostalCode TEXT, ShadowCountry TEXT,
+            Languages TEXT, Unsubscribed TEXT, Focus TEXT,
+            -- Note: nameSuffix, outletName, phone were duplicated in prompt, using camelCase version
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            -- Consider adding UNIQUE constraint on Email if it should be unique
+        )
+    ''')
+
+    # Media Titles Table (identical structure to journalists)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS media_titles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT, nameSuffix TEXT, outletName TEXT, phone TEXT, ModeOfAddress TEXT,
+            Honorific TEXT, JobTitle TEXT, MediaType TEXT, Email TEXT, AddressLine1 TEXT,
+            AddressLine2 TEXT, City TEXT, County TEXT, State TEXT, PostalCode TEXT,
+            Country TEXT, Twitter TEXT, Facebook TEXT, Instagram TEXT, Pinterest TEXT,
+            YouTube TEXT, ShadowEmail TEXT, ShadowPhone TEXT, ShadowMobile TEXT,
+            ShadowWebsite TEXT, ShadowFacebook TEXT, ShadowTwitter TEXT, ShadowLinkedIn TEXT,
+            ShadowAddressLine1 TEXT, ShadowAddressLine2 TEXT, ShadowCity TEXT,
+            ShadowCounty TEXT, ShadowPostalCode TEXT, ShadowCountry TEXT,
+            Languages TEXT, Unsubscribed TEXT, Focus TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.commit()
     conn.close()
-    print("Database tables (companies, users) checked/created successfully.")
+    print("Database tables (companies, users, journalists, media_titles) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""

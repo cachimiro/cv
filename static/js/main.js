@@ -48,78 +48,72 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Load Companies ---
-    async function fetchCompanies() {
+    // --- Load Table Data ---
+    async function fetchTableData(tableName = 'journalists') { // Default to journalists
         try {
-            const response = await fetch(`${API_BASE_URL}/companies`);
+            const response = await fetch(`${API_BASE_URL}/table/${tableName}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const companies = await response.json();
-            renderCompanies(companies);
+            const data = await response.json();
+            renderTableData(data, tableName);
         } catch (error) {
-            console.error('Error fetching companies:', error);
-            if(companiesListDiv) companiesListDiv.innerHTML = '<p>Error loading companies. Please try again later.</p>';
+            console.error(`Error fetching data for ${tableName}:`, error);
+            if(companiesListDiv) companiesListDiv.innerHTML = `<p>Error loading data for ${tableName}. Please try again later.</p>`;
         }
     }
 
-    function renderCompanies(companies) {
+    function renderTableData(data, tableName) {
         if (!companiesListDiv) return;
 
-        if (companies.length === 0) {
-            companiesListDiv.innerHTML = '<p>No companies found. Add one!</p>';
+        if (data.length === 0) {
+            companiesListDiv.innerHTML = `<p>No entries found in ${tableName}. Add one or import a CSV!</p>`;
             return;
         }
 
+        // For now, we will show a few key, common fields.
+        // This will need to be made more dynamic later.
         let tableHtml = `
             <div class="companies-table-container">
                 <table class="companies-table">
                     <thead>
                         <tr>
-                        <th><!-- Avatar Col (empty header) --></th>
+                        <th><!-- Avatar Col --></th>
                         <th>Name</th>
-                        <th>Contact Info</th> <!-- Was URL -->
-                        <th>Status</th> <!-- Was Industry -->
+                        <th>Outlet Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
-        companies.forEach(company => {
-            // For placeholders:
-            const avatarInitial = company.name ? company.name.charAt(0).toUpperCase() : '?';
-            // const contactInfo = company.url || 'N/A'; // Or re-purpose for email later
-            // For now, let's use URL for "Contact Info" to keep data flowing
-            const contactInfoDisplay = company.url ? `<a href="${escapeHTML(company.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(company.url)}</a>` : 'N/A';
-
-            // Placeholder for status - can cycle or be based on some data later
-            const statuses = ['Active', 'Pending', 'On Hold'];
-            const status = statuses[company.id % statuses.length]; // Example: cycle status
-            const statusBadgeClass = status.toLowerCase().replace(' ', '-'); // e.g., 'on-hold'
+        data.forEach(row => {
+            const avatarInitial = row.name ? row.name.charAt(0).toUpperCase() : '?';
 
             tableHtml += `
                 <tr>
                     <td><div class="table-avatar-placeholder">${avatarInitial}</div></td>
-                    <td>${escapeHTML(company.name)}</td>
-                    <td>${contactInfoDisplay}</td>
-                    <td><span class="status-badge status-${statusBadgeClass}">${escapeHTML(status)}</span></td>
+                    <td>${escapeHTML(row.name)}</td>
+                    <td>${escapeHTML(row.outletName)}</td>
+                    <td>${escapeHTML(row.Email)}</td>
+                    <td>${escapeHTML(row.phone)}</td>
                     <td class="action-buttons">
-                        <button class="btn btn-secondary btn-sm edit-btn" data-id="${company.id}" title="Edit">&#9998;</button> <!-- Pencil icon -->
-                        <button class="btn btn-danger btn-sm delete-btn" data-id="${company.id}" title="Delete">&#128465;</button> <!-- Trash can icon -->
-                        <!-- Future: Per-row webhook push button -->
+                        <button class="btn btn-secondary btn-sm edit-btn" data-id="${row.id}" data-table="${tableName}" title="Edit">&#9998;</button>
+                        <button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}" data-table="${tableName}" title="Delete">&#128465;</button>
                     </td>
                 </tr>
             `;
         });
-        tableHtml += '</tbody></table></div>'; // Close .companies-table-container
+        tableHtml += '</tbody></table></div>';
         companiesListDiv.innerHTML = tableHtml;
 
         // Add event listeners for edit and delete buttons
         document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', handleEditCompany);
+            button.addEventListener('click', handleEditEntry); // Generic handler
         });
         document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', handleDeleteCompany);
+            button.addEventListener('click', handleDeleteEntry); // Generic handler
         });
     }
 
@@ -140,102 +134,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Form Submission (Add/Edit) ---
+    // NOTE: This logic is still tied to the old 'companies' modal and API.
+    // It will need to be made dynamic in a future step. For now, it will likely fail
+    // if used with the new tables unless we create generic add/edit/delete endpoints.
     if (companyForm) {
         companyForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-            const id = companyIdInput.value;
-            const companyData = {
-                name: document.getElementById('name').value,
-                url: document.getElementById('url').value,
-                industry: document.getElementById('industry').value
-            };
-
-            let url = `${API_BASE_URL}/companies`;
-            let method = 'POST';
-
-            if (id) { // If ID exists, it's an update
-                url += `/${id}`;
-                method = 'PUT';
-            }
-
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // Future: 'X-API-Key': 'YOUR_API_KEY_HERE'
-                    },
-                    body: JSON.stringify(companyData)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
-                // const result = await response.json(); // Or handle based on status code for POST (201) / PUT (200)
-                // console.log('Success:', result);
-                closeModal();
-                fetchCompanies(); // Refresh the list
-                // TODO: Add user feedback (e.g., "Company saved successfully")
-            } catch (error) {
-                console.error('Error saving company:', error);
-                alert(`Error saving company: ${error.message}`); // Simple alert for now
-                // TODO: Display error more gracefully within the modal or page
-            }
+            alert("Add/Edit functionality for this table is not yet implemented.");
+            // The logic below is for the old /api/companies endpoint and needs refactoring.
+            return;
         });
     }
 
-    // --- Edit Company ---
-    async function handleEditCompany(event) {
-        const id = event.target.dataset.id;
-        try {
-            const response = await fetch(`${API_BASE_URL}/companies/${id}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const company = await response.json();
-
-            // Populate form
-            companyIdInput.value = company.id;
-            document.getElementById('name').value = company.name || '';
-            document.getElementById('url').value = company.url || '';
-            document.getElementById('industry').value = company.industry || '';
-
-            modalTitle.textContent = 'Edit Company';
-            openModal();
-        } catch (error) {
-            console.error('Error fetching company details for edit:', error);
-            alert('Could not load company details for editing.');
-        }
+    // --- Edit Entry ---
+    async function handleEditEntry(event) {
+        alert("Edit functionality is not yet implemented for this table.");
+        // const id = event.target.dataset.id;
+        // const tableName = event.target.dataset.table;
+        // Future: Fetch from `/api/table/${tableName}/${id}`
+        // Future: Populate a dynamic modal based on table schema
     }
 
-    // --- Delete Company ---
-    async function handleDeleteCompany(event) {
-        const id = event.target.dataset.id;
-        if (confirm(`Are you sure you want to delete company ID ${id}?`)) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        // Future: 'X-API-Key': 'YOUR_API_KEY_HERE'
-                    }
-                });
-
-                if (!response.ok) {
-                     const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-                // console.log('Delete successful');
-                fetchCompanies(); // Refresh the list
-                // TODO: Add user feedback (e.g., "Company deleted successfully")
-            } catch (error) {
-                console.error('Error deleting company:', error);
-                alert(`Error deleting company: ${error.message}`); // Simple alert for now
-            }
-        }
+    // --- Delete Entry ---
+    async function handleDeleteEntry(event) {
+        alert("Delete functionality is not yet implemented for this table.");
+        // const id = event.target.dataset.id;
+        // const tableName = event.target.dataset.table;
+        // if (confirm(`Are you sure you want to delete entry ID ${id} from ${tableName}?`)) {
+        //     // Future: Call `DELETE /api/table/${tableName}/${id}`
+        // }
     }
 
     // Initial load
-    fetchCompanies();
+    fetchTableData('journalists'); // Load journalists by default
 });

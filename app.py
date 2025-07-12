@@ -158,6 +158,155 @@ def logout():
 # All API endpoints should also require login if they are primarily supporting the web UI
 # For external programmatic access, the X-API-Key mechanism would be used in conjunction or as an alternative.
 
+# --- CSV Import API Endpoints ---
+import csv
+import io # For reading file in memory
+import json # For parsing the column mapping
+
+@app.route('/api/import/preview', methods=['POST'])
+@login_required
+def csv_preview():
+    """
+    Accepts a CSV file and returns its headers for mapping.
+    """
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+
+    if file and file.filename.lower().endswith('.csv'):
+        try:
+            # Read the first line of the file to get headers
+            # We use io.TextIOWrapper to decode the file stream as text
+            stream = io.TextIOWrapper(file.stream, encoding='utf-8')
+            reader = csv.reader(stream)
+            headers = next(reader)
+            # Optional: Basic sanitization of headers
+            headers = [header.strip() for header in headers]
+            return jsonify({"headers": headers}), 200
+        except (csv.Error, StopIteration):
+            return jsonify({"error": "Could not read headers from CSV file. It might be empty or malformed."}), 400
+        except Exception as e:
+            print(f"Error in CSV preview: {e}")
+            return jsonify({"error": "An unexpected error occurred while processing the file."}), 500
+
+    return jsonify({"error": "Invalid file type. Please upload a .csv file."}), 400
+
+@app.route('/api/import/run', methods=['POST'])
+@login_required
+def csv_run_import():
+    """
+    Accepts a CSV file, a target table name, and a column mapping,
+    then imports the data into the specified table.
+    """
+    # --- 1. Validate Request ---
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+    if 'target_table' not in request.form:
+        return jsonify({"error": "No target_table specified"}), 400
+    if 'column_mapping' not in request.form:
+        return jsonify({"error": "No column_mapping provided"}), 400
+
+    file = request.files['file']
+    target_table = request.form.get('target_table')
+
+    try:
+        column_mapping = json.loads(request.form.get('column_mapping'))
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON in column_mapping"}), 400
+
+    # --- 2. Check for valid file and target table ---
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+    if target_table not in ['journalists', 'media_titles']:
+        return jsonify({"error": "Invalid target table specified."}), 400
+    if not file.filename.lower().endswith('.csv'):
+        return jsonify({"error": "Invalid file type. Please upload a .csv file."}), 400
+
+    # --- 3. Process the import ---
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        stream = io.TextIOWrapper(file.stream, encoding='utf-8')
+        reader = csv.reader(stream)
+
+        # Get CSV headers and build an index map for quick lookup
+        csv_headers = next(reader)
+        header_index_map = {header: i for i, header in enumerate(csv_headers)}
+
+        # Filter mapping to only include columns present in the uploaded CSV
+        valid_mapping = {
+            csv_col: db_col
+            for csv_col, db_col in column_mapping.items()
+            if csv_col in header_index_map and db_col # Ensure db_col is not empty/null
+        }
+
+        if not valid_mapping:
+            return jsonify({"error": "Column mapping is empty or does not match any headers in the CSV file."}), 400
+
+        db_columns = list(valid_mapping.values())
+        placeholders = ', '.join(['?'] * len(db_columns))
+        sql = f"INSERT INTO {target_table} ({', '.join(db_columns)}) VALUES ({placeholders})"
+
+        imported_count = 0
+        for row in reader:
+            # Build the tuple of values in the correct order for the SQL statement
+            values_to_insert = []
+            for csv_col in valid_mapping.keys():
+                col_index = header_index_map[csv_col]
+                values_to_insert.append(row[col_index])
+
+            cursor.execute(sql, tuple(values_to_insert))
+            imported_count += 1
+
+        conn.commit()
+        return jsonify({
+            "message": f"Import successful. {imported_count} rows imported into '{target_table}'.",
+            "imported_rows": imported_count
+        }), 200
+
+    except Exception as e:
+        conn.rollback() # Rollback on any error during the transaction
+        print(f"Error during CSV import run: {e}")
+        return jsonify({"error": f"An error occurred during the import: {e}"}), 500
+    finally:
+        conn.close()
+
+
+# --- Generic Table Data API ---
+
+@app.route('/api/table/<string:table_name>', methods=['GET'])
+@login_required
+def get_table_data(table_name):
+    """
+    Fetches paginated data from a specified table.
+    For now, fetches all data. Pagination can be added later.
+    """
+    if table_name not in ['journalists', 'media_titles', 'companies']: # Allow companies for now
+        return jsonify({"error": "Invalid table name specified"}), 400
+
+    try:
+        conn = database.get_db_connection()
+        # Using a safe way to format table name - ensure it's in the allow-list
+        query = f"SELECT * FROM {table_name}" # Not safe for user input, but safe here due to check above
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+        conn.close()
+
+        # Convert list of Row objects to list of dictionaries
+        data_list = [dict(row) for row in data]
+        return jsonify(data_list), 200
+    except Exception as e:
+        print(f"Error fetching data for table {table_name}: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+
+# --- Old Company Data API Endpoints (to be refactored/removed) ---
+
 @app.route('/api/companies', methods=['GET'])
 @login_required
 # @require_api_key # This would be for separate programmatic API key auth

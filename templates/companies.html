@@ -8,7 +8,8 @@
         <h1>Welcome back, {{ current_user.username if current_user.is_authenticated else "Guest" }}! 👋</h1>
     </div>
     <div class="section-heading-container">
-        <h2 class="section-heading">Company Data</h2>
+        <h2 class="section-heading">Data Table: <span id="current-table-name">Journalists</span></h2>
+        <!-- Future: Add a dropdown here to select the table -->
     </div>
 {% endblock %}
 
