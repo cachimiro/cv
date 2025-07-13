@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DEBUG: main.js script loaded and DOMContentLoaded event fired.");
+
     const companiesListDiv = document.getElementById('companiesList');
     // --- Element References ---
     const companiesListDiv = document.getElementById('companiesList');
@@ -43,9 +45,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Event Listeners ---
     if (uploadCsvBtn) {
+        console.log("DEBUG: uploadCsvBtn element found. Attaching click listener.");
         uploadCsvBtn.addEventListener('click', () => {
+            console.log("DEBUG: 'Upload New Data' button clicked. Triggering file input.");
             csvFileInput.click(); // Trigger hidden file input
         });
+    } else {
+        console.error("DEBUG: uploadCsvBtn element NOT found.");
     }
 
     if (csvFileInput) {

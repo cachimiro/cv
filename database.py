@@ -40,7 +40,7 @@ def create_tables():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
 
     # --- New tables for Sway PR Data ---
-
+    print("DEBUG: Attempting to create 'journalists' table...")
     # Journalists Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS journalists (
@@ -60,7 +60,9 @@ def create_tables():
             -- Consider adding UNIQUE constraint on Email if it should be unique
         )
     ''')
+    print("DEBUG: 'journalists' table creation command executed.")
 
+    print("DEBUG: Attempting to create 'media_titles' table...")
     # Media Titles Table (identical structure to journalists)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS media_titles (
@@ -78,6 +80,7 @@ def create_tables():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    print("DEBUG: 'media_titles' table creation command executed.")
 
     # Staff Table
     cursor.execute('''
