@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelMappingBtn = document.getElementById('cancelMappingBtn');
     const runImportBtn = document.getElementById('runImportBtn');
     const mappingTableContainer = document.getElementById('mapping-table-container');
-    const targetTableSelect = document.getElementById('targetTableSelect');
+    // const targetTableSelect = document.getElementById('targetTableSelect'); // DEFER looking for this
 
     const API_BASE_URL = '/api';
     let uploadedFile = null; // Variable to store the uploaded file temporarily
@@ -121,6 +121,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function buildMappingUI(csvHeaders) {
+        const targetTableSelect = document.getElementById('targetTableSelect'); // Find element just-in-time
+        if (!targetTableSelect) {
+            console.error("CRITICAL: Could not find 'targetTableSelect' element in the modal.");
+            alert("An unexpected error occurred. Could not find the target table dropdown.");
+            return;
+        }
         const targetTable = targetTableSelect.value;
         if (!targetTable) {
             alert("Please select a target table first.");
@@ -164,7 +170,19 @@ document.addEventListener('DOMContentLoaded', function() {
             runImportBtn.disabled = true;
             runImportBtn.textContent = 'Importing...';
         }
-        const targetTable = targetTableSelect.value;
+
+        const targetTableSelect = document.getElementById('targetTableSelect'); // Find just-in-time
+        const targetTable = targetTableSelect ? targetTableSelect.value : null;
+
+        if (!targetTable) {
+            alert("Could not find target table. Aborting import.");
+            if (runImportBtn) {
+                runImportBtn.disabled = false;
+                runImportBtn.textContent = 'Run Import';
+            }
+            return;
+        }
+
         const mappingSelects = mappingTableContainer.querySelectorAll('.mapping-select');
         const columnMapping = {};
         mappingSelects.forEach(select => {
