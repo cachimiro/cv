@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block title %}Staff Management - Sway PR Data{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block page_header %}
+    <div class="greeting-banner">
+        <h1>Manage Staff Members</h1>
+        <p>Add or remove staff members who can be assigned to outreach tasks.</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="staff-management-container">
+    <div class="add-staff-form-container">
+        <h3>Add New Staff Member</h3>
+        <form id="addStaffForm">
+            <div class="form-group">
+                <label for="staffName">Staff Name</label>
+                <input type="text" id="staffName" name="staff_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="staffEmail">Staff Email</label>
+                <input type="email" id="staffEmail" name="staff_email" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add Staff</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="staff-list-container">
+        <h3>Current Staff</h3>
+        <div id="staffList" class="data-table-container">
+            <!-- Staff list will be loaded here by JavaScript -->
+            <p>Loading staff...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/staff.js') }}"></script>
+{% endblock %}

@@ -48,6 +48,12 @@ def is_authenticated(api_key):
 
 # --- Web Page Routes ---
 
+@app.route('/staff')
+@login_required
+def staff_management():
+    """Serves the staff management page."""
+    return render_template('staff.html')
+
 @app.route('/')
 @login_required
 def index():
@@ -278,6 +284,32 @@ def csv_run_import():
 
 # --- Generic Table Data API ---
 
+@app.route('/api/table/<string:table_name>/schema', methods=['GET'])
+@login_required
+def get_table_schema(table_name):
+    """
+    Returns the column names for a specified table.
+    """
+    if table_name not in ['journalists', 'media_titles']:
+        return jsonify({"error": "Invalid table name specified"}), 400
+
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        # Pragma table_info is a safe way to get schema info
+        cursor.execute(f"PRAGMA table_info({table_name})")
+        schema_info = cursor.fetchall()
+        conn.close()
+
+        # Extract column names, ignoring primary key and timestamp fields
+        excluded_columns = ['id', 'created_at', 'updated_at']
+        column_names = [row['name'] for row in schema_info if row['name'] not in excluded_columns]
+
+        return jsonify({"table": table_name, "columns": column_names}), 200
+    except Exception as e:
+        print(f"Error fetching schema for table {table_name}: {e}")
+        return jsonify({"error": "An internal server error occurred while fetching table schema."}), 500
+
 @app.route('/api/table/<string:table_name>', methods=['GET'])
 @login_required
 def get_table_data(table_name):
@@ -302,6 +334,67 @@ def get_table_data(table_name):
         return jsonify(data_list), 200
     except Exception as e:
         print(f"Error fetching data for table {table_name}: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+
+# --- Staff API Endpoints ---
+
+@app.route('/api/staff', methods=['GET'])
+@login_required
+def get_staff():
+    """Fetches all staff members."""
+    try:
+        conn = database.get_db_connection()
+        staff_list = conn.execute('SELECT * FROM staff ORDER BY staff_name').fetchall()
+        conn.close()
+        return jsonify([dict(row) for row in staff_list]), 200
+    except Exception as e:
+        print(f"Error fetching staff: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/api/staff', methods=['POST'])
+@login_required
+def add_staff():
+    """Adds a new staff member."""
+    data = request.get_json()
+    if not data or not data.get('staff_name') or not data.get('staff_email'):
+        return jsonify({"error": "Missing required fields: staff_name and staff_email"}), 400
+
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO staff (staff_name, staff_email) VALUES (?, ?)",
+            (data['staff_name'], data['staff_email'])
+        )
+        conn.commit()
+        new_staff_id = cursor.lastrowid
+        conn.close()
+        return jsonify({"message": "Staff member added successfully", "id": new_staff_id}), 201
+    except database.sqlite3.IntegrityError:
+        return jsonify({"error": f"Email '{data['staff_email']}' already exists."}), 409 # Conflict
+    except Exception as e:
+        print(f"Error adding staff: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/api/staff/<int:staff_id>', methods=['DELETE'])
+@login_required
+def delete_staff(staff_id):
+    """Deletes a staff member."""
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM staff WHERE id = ?", (staff_id,))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({"error": "Staff member not found"}), 404
+
+        conn.close()
+        return jsonify({"message": "Staff member deleted successfully"}), 200
+    except Exception as e:
+        print(f"Error deleting staff: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
 
 

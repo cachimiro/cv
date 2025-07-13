@@ -20,9 +20,10 @@
         <!-- Search icon can be added later -->
     </div>
     <div class="action-control">
-        <button id="addNewCompanyBtn" class="btn btn-primary btn-add-new">
-            <span class="btn-icon">+</span> Add New Company
+        <button id="uploadCsvBtn" class="btn btn-primary btn-add-new">
+            <span class="btn-icon">+</span> Upload New Data
         </button>
+        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
     </div>
 </div>
 
@@ -73,3 +74,31 @@
 {% block extra_js %}
 <!-- Specific JS for this page could go here if needed, but main.js will handle most -->
 {% endblock %}
+
+<!-- Mapping Modal -->
+<div id="mappingModal" class="modal">
+    <div class="modal-content large"> <!-- Add 'large' class for wider modal -->
+        <div class="modal-header">
+            <h3 id="mappingModalTitle" class="modal-title">Map CSV Columns to Database Fields</h3>
+            <button id="closeMappingModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="targetTableSelect">Select Target Table:</label>
+                <select id="targetTableSelect" name="target_table" class="form-control">
+                    <option value="journalists">Journalists</option>
+                    <option value="media_titles">Media Titles</option>
+                </select>
+            </div>
+            <p>Match the columns from your CSV file (left) to the correct field in the database (right). Unmapped columns will be ignored.</p>
+            <div id="mapping-table-container">
+                <!-- Mapping UI will be generated here by JavaScript -->
+                <p><i>Please upload a CSV file to begin mapping.</i></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="cancelMappingBtn" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="runImportBtn" class="btn btn-primary" disabled>Run Import</button>
+        </div>
+    </div>
+</div>

@@ -535,8 +535,73 @@ th, td {
     color: #333;
 }
 
+/* Specific styles for Mapping Modal */
+.modal-content.large {
+    max-width: 800px; /* Wider modal for mapping table */
+}
+.modal-body {
+    max-height: 60vh; /* Make body scrollable if content is too tall */
+    overflow-y: auto;
+    padding: 1rem 0;
+}
+.modal-footer {
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+}
+.modal-footer .btn {
+    margin-left: 0.5rem;
+}
+
+.mapping-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.mapping-table th,
+.mapping-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+.mapping-table th {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+.mapping-table td:first-child {
+    font-weight: 500;
+    color: #333;
+}
+.mapping-table .mapping-select {
+    width: 100%;
+}
+
+/* Staff Management Page Layout */
+.staff-management-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Form on left, list on right */
+    gap: 2rem; /* Space between the two columns */
+}
+.add-staff-form-container, .staff-list-container {
+    background-color: #f8f9fa; /* Light grey background for containers */
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+.add-staff-form-container h3, .staff-list-container h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
 
 /* Responsive adjustments */
+@media (max-width: 992px) { /* A breakpoint between tablet and desktop */
+    .staff-management-container {
+        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    }
+}
 @media (max-width: 768px) {
     /* Sidebar: For now, remains fixed. If it needs to hide/toggle, that's a bigger change. */
     /* Main content wrapper will be narrower. */
