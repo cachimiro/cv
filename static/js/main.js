@@ -18,9 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const outreachModal = document.getElementById('outreachModal');
     const closeOutreachModalBtn = document.getElementById('closeOutreachModalBtn');
     const outreachCancelBtn = document.getElementById('outreachCancelBtn');
-    const outreachNextBtn = document.getElementById('outreachNextBtn');
-    const outreachSendBtn = document.getElementById('outreachSendBtn');
     const outreachSteps = document.querySelectorAll('.outreach-step');
+    // Defer lookup for buttons inside the modal: outreachNextBtn, outreachSendBtn
 
     const API_BASE_URL = '/api';
     let uploadedFile = null; // Variable to store the uploaded file temporarily
@@ -44,8 +43,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (createOutreachBtn) createOutreachBtn.addEventListener('click', openOutreachModal);
     if (closeOutreachModalBtn) closeOutreachModalBtn.addEventListener('click', resetOutreachModal);
     if (outreachCancelBtn) outreachCancelBtn.addEventListener('click', resetOutreachModal);
-    if (outreachNextBtn) outreachNextBtn.addEventListener('click', handleOutreachNext);
-    if (outreachSendBtn) outreachSendBtn.addEventListener('click', handleSendTargetedOutreach);
+    // These listeners need to be attached to the parent modal or document, since the buttons themselves
+    // might not be found at DOMContentLoaded. Or, we can find the buttons inside the openOutreachModal function
+    // and attach listeners there. A simpler way for now is to attach to the modal footer.
+    const outreachFooter = document.getElementById('outreach-modal-footer');
+    if(outreachFooter) {
+        outreachFooter.addEventListener('click', (event) => {
+            if (event.target.id === 'outreachNextBtn') {
+                handleOutreachNext();
+            }
+            if (event.target.id === 'outreachSendBtn') {
+                handleSendTargetedOutreach();
+            }
+        });
+    }
 
 
     window.addEventListener('click', (event) => {
@@ -266,23 +277,30 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function showOutreachStep(stepNumber) {
+        const outreachNextBtn = document.getElementById('outreachNextBtn');
+        const outreachSendBtn = document.getElementById('outreachSendBtn');
+
         currentOutreachStep = stepNumber;
         outreachSteps.forEach(step => step.style.display = 'none');
         const currentStepElem = document.getElementById(`outreach-step-${stepNumber}`);
         if(currentStepElem) currentStepElem.style.display = 'block';
 
-        outreachNextBtn.style.display = 'block';
-        outreachSendBtn.style.display = 'none';
+        if(outreachNextBtn && outreachSendBtn) {
+            outreachNextBtn.style.display = 'block';
+            outreachSendBtn.style.display = 'none';
 
-        if (stepNumber === 2 || stepNumber === 4) {
-            outreachNextBtn.textContent = 'Confirm';
+            if (stepNumber === 2 || stepNumber === 4) {
+                outreachNextBtn.textContent = 'Confirm';
+            } else {
+                outreachNextBtn.textContent = 'Next';
+            }
+
+            if (stepNumber === 4) {
+                outreachNextBtn.style.display = 'none';
+                outreachSendBtn.style.display = 'inline-block';
+            }
         } else {
-            outreachNextBtn.textContent = 'Next';
-        }
-
-        if (stepNumber === 4) {
-            outreachNextBtn.style.display = 'none';
-            outreachSendBtn.style.display = 'inline-block';
+            console.error("Could not find outreach modal buttons to update visibility.");
         }
     }
 
