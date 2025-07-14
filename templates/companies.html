@@ -18,7 +18,7 @@
         <input type="search" id="searchCompaniesInput" placeholder="Search entries..." class="form-control">
     </div>
     <div class="action-control">
-        <button id="sendAllBtn" class="btn btn-secondary">Send All to Webhook</button>
+        <button id="createOutreachBtn" class="btn btn-secondary">Create Outreach</button>
         <button id="uploadCsvBtn" class="btn btn-primary btn-add-new">
             <span class="btn-icon">+</span> Upload New Data
         </button>
@@ -74,3 +74,57 @@
 {% block extra_js %}
 <!-- The main.js script is already loaded in layout.html -->
 {% endblock %}
+
+<!-- Outreach Modal -->
+<div id="outreachModal" class="modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3 id="outreachModalTitle" class="modal-title">Create Outreach</h3>
+            <button id="closeOutreachModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Step 1: Select Staff -->
+            <div id="outreach-step-1" class="outreach-step">
+                <h4>Step 1: Choose Staff Member(s)</h4>
+                <p>Select the staff members you wish to use for this campaign.</p>
+                <div id="outreach-staff-list-container" class="multi-select-container">
+                    <!-- Staff list with checkboxes will be loaded here -->
+                    <p>Loading staff...</p>
+                </div>
+            </div>
+
+            <!-- Step 2: Confirm Staff -->
+            <div id="outreach-step-2" class="outreach-step" style="display:none;">
+                <h4>Step 2: Confirm Staff Selection</h4>
+                <p>Are you sure you want to use these staff members?</p>
+                <div id="outreach-staff-confirm-list"></div>
+            </div>
+
+            <!-- Step 3: Select Outlets -->
+            <div id="outreach-step-3" class="outreach-step" style="display:none;">
+                <h4>Step 3: Choose Target Outlets</h4>
+                <p>Select the outlets you want to target.</p>
+                <input type="search" id="outreach-outlet-search" class="form-control" placeholder="Search for outlets...">
+                <div id="outreach-outlets-list-container" class="multi-select-container">
+                    <!-- Outlet list with checkboxes will be loaded here -->
+                    <p>Loading outlets...</p>
+                </div>
+            </div>
+
+            <!-- Step 4: Confirm Outlets & Send -->
+            <div id="outreach-step-4" class="outreach-step" style="display:none;">
+                <h4>Step 4: Confirm Outreach Details</h4>
+                <p>You are about to send an outreach to the following outlets, associated with the selected staff.</p>
+                <h5>Selected Staff:</h5>
+                <div id="outreach-final-staff-list"></div>
+                <h5>Selected Outlets:</h5>
+                <div id="outreach-final-outlets-list"></div>
+            </div>
+        </div>
+        <div class="modal-footer" id="outreach-modal-footer">
+            <button type="button" id="outreachCancelBtn" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="outreachNextBtn" class="btn btn-primary">Next</button>
+            <button type="button" id="outreachSendBtn" class="btn btn-primary" style="display:none;">Send to Webhook</button>
+        </div>
+    </div>
+</div>

@@ -339,6 +339,50 @@ def get_table_data(table_name):
 
 # --- Staff API Endpoints ---
 
+@app.route('/api/outlets/<string:table_name>', methods=['GET'])
+@login_required
+def get_outlet_names(table_name):
+    """
+    Fetches a distinct list of outlet names from the specified table.
+    """
+    if table_name not in ['journalists', 'media_titles']:
+        return jsonify({"error": "Invalid table name specified"}), 400
+
+    try:
+        conn = database.get_db_connection()
+        # Use a safe way to format table name
+        query = f"SELECT DISTINCT outletName FROM {table_name} WHERE outletName IS NOT NULL AND outletName != '' ORDER BY outletName"
+        outlets = conn.execute(query).fetchall()
+        conn.close()
+        # Extract just the name from the row object
+        outlet_names = [row['outletName'] for row in outlets]
+        return jsonify(outlet_names), 200
+    except Exception as e:
+        print(f"Error fetching outlet names for table {table_name}: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/api/outlets/all', methods=['GET'])
+@login_required
+def get_all_outlet_names():
+    """
+    Fetches a distinct list of all outlet names from both journalists and media_titles tables.
+    """
+    try:
+        conn = database.get_db_connection()
+        query = """
+            SELECT DISTINCT outletName FROM journalists WHERE outletName IS NOT NULL AND outletName != ''
+            UNION
+            SELECT DISTINCT outletName FROM media_titles WHERE outletName IS NOT NULL AND outletName != ''
+            ORDER BY outletName
+        """
+        outlets = conn.execute(query).fetchall()
+        conn.close()
+        outlet_names = [row['outletName'] for row in outlets]
+        return jsonify(outlet_names), 200
+    except Exception as e:
+        print(f"Error fetching all outlet names: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
 @app.route('/api/staff', methods=['GET'])
 @login_required
 def get_staff():
@@ -428,6 +472,56 @@ def send_all_to_webhook():
 
     except Exception as e:
         print(f"Error in send_all_to_webhook: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+
+@app.route('/api/webhook/send_targeted_outreach', methods=['POST'])
+@login_required
+def send_targeted_outreach():
+    """
+    Accepts a target table, a list of outlet names, and a staff email,
+    then sends the filtered data to the webhook.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid request. No JSON payload found."}), 400
+
+    target_table = data.get('target_table')
+    outlet_names = data.get('outlet_names')
+    staff_members = data.get('staff_members') # Changed from staff_email
+
+    # --- Validate Inputs ---
+    if target_table not in ['journalists', 'media_titles']:
+        return jsonify({"error": "Invalid target_table specified."}), 400
+    if not isinstance(outlet_names, list) or not outlet_names:
+        return jsonify({"error": "outlet_names must be a non-empty list."}), 400
+    if not isinstance(staff_members, list) or not staff_members:
+        return jsonify({"error": "staff_members must be a non-empty list."}), 400
+
+    try:
+        conn = database.get_db_connection()
+        # Create a string of placeholders for the IN clause
+        placeholders = ', '.join(['?'] * len(outlet_names))
+        query = f"SELECT * FROM {target_table} WHERE outletName IN ({placeholders})"
+
+        contacts = conn.execute(query, outlet_names).fetchall()
+        conn.close()
+
+        # Structure the payload for the webhook
+        payload = {
+            "senders": staff_members, # Changed from sender_email
+            "outreach_contacts": [dict(row) for row in contacts]
+        }
+
+        if database.send_to_webhook(payload):
+            return jsonify({
+                "message": f"Successfully sent data for {len(contacts)} contacts from {len(outlet_names)} selected outlets to webhook. Senders: {', '.join(s['staff_name'] for s in staff_members)}",
+                "sent_contacts_count": len(contacts)
+            }), 200
+        else:
+            return jsonify({"error": "Failed to send data to webhook."}), 500
+
+    except Exception as e:
+        print(f"Error in send_targeted_outreach: {e}")
         return jsonify({"error": "An internal server error occurred."}), 500
 
 

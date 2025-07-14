@@ -12,7 +12,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const mappingTableContainer = document.getElementById('mapping-table-container');
 
     // Webhook Elements
-    const sendAllBtn = document.getElementById('sendAllBtn');
+    const createOutreachBtn = document.getElementById('createOutreachBtn'); // Renamed from sendAllBtn
+
+    // Outreach Modal Elements
+    const outreachModal = document.getElementById('outreachModal');
+    const closeOutreachModalBtn = document.getElementById('closeOutreachModalBtn');
+    const outreachCancelBtn = document.getElementById('outreachCancelBtn');
+    const outreachNextBtn = document.getElementById('outreachNextBtn');
+    const outreachSendBtn = document.getElementById('outreachSendBtn');
+    const outreachSteps = document.querySelectorAll('.outreach-step');
 
     const API_BASE_URL = '/api';
     let uploadedFile = null; // Variable to store the uploaded file temporarily
@@ -31,7 +39,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeMappingModalBtn) closeMappingModalBtn.addEventListener('click', closeMappingModal);
     if (cancelMappingBtn) cancelMappingBtn.addEventListener('click', closeMappingModal);
     if (runImportBtn) runImportBtn.addEventListener('click', handleRunImport);
-    if (sendAllBtn) sendAllBtn.addEventListener('click', handleSendAllToWebhook);
+
+    // New listeners for outreach modal
+    if (createOutreachBtn) createOutreachBtn.addEventListener('click', openOutreachModal);
+    if (closeOutreachModalBtn) closeOutreachModalBtn.addEventListener('click', resetOutreachModal);
+    if (outreachCancelBtn) outreachCancelBtn.addEventListener('click', resetOutreachModal);
+    if (outreachNextBtn) outreachNextBtn.addEventListener('click', handleOutreachNext);
+    if (outreachSendBtn) outreachSendBtn.addEventListener('click', handleSendTargetedOutreach);
+
 
     window.addEventListener('click', (event) => {
         if (event.target === mappingModal) {
@@ -243,38 +258,140 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Initial Load ---
     fetchTableData('journalists');
 
-    // --- Webhook Functions ---
-    async function handleSendAllToWebhook() {
-        if (!confirm("Are you sure you want to send all data from both the Journalists and Media Titles tables to the webhook?")) {
-            return;
+    // --- Outreach Modal Logic ---
+    let currentOutreachStep = 1;
+    let outreachSelections = {
+        staff: [],
+        outlets: []
+    };
+
+    function showOutreachStep(stepNumber) {
+        currentOutreachStep = stepNumber;
+        outreachSteps.forEach(step => step.style.display = 'none');
+        const currentStepElem = document.getElementById(`outreach-step-${stepNumber}`);
+        if(currentStepElem) currentStepElem.style.display = 'block';
+
+        outreachNextBtn.style.display = 'block';
+        outreachSendBtn.style.display = 'none';
+
+        if (stepNumber === 2 || stepNumber === 4) {
+            outreachNextBtn.textContent = 'Confirm';
+        } else {
+            outreachNextBtn.textContent = 'Next';
         }
 
-        // Optional: Provide visual feedback
-        if(sendAllBtn) {
-            sendAllBtn.disabled = true;
-            sendAllBtn.textContent = "Sending...";
+        if (stepNumber === 4) {
+            outreachNextBtn.style.display = 'none';
+            outreachSendBtn.style.display = 'inline-block';
         }
+    }
+
+    function resetOutreachModal() {
+        outreachSelections = { staff: [], outlets: [] };
+        showOutreachStep(1);
+        const staffContainer = document.getElementById('outreach-staff-list-container');
+        const outletsContainer = document.getElementById('outreach-outlets-list-container');
+        if(staffContainer) staffContainer.innerHTML = '<p>Loading staff...</p>';
+        if(outletsContainer) outletsContainer.innerHTML = '<p>Loading outlets...</p>';
+        if (outreachModal) outreachModal.style.display = 'none';
+    }
+
+    async function openOutreachModal() {
+        resetOutreachModal();
+        if (outreachModal) outreachModal.style.display = 'block';
 
         try {
-            const response = await fetch(`${API_BASE_URL}/webhook/send_all`, {
-                method: 'POST'
+            const response = await fetch(`${API_BASE_URL}/staff`);
+            const staffList = await response.json();
+            const container = document.getElementById('outreach-staff-list-container');
+            let listHtml = '';
+            staffList.forEach(staff => {
+                listHtml += `<div class="multi-select-item">
+                    <input type="checkbox" id="staff_${staff.id}" name="staff" value='${escapeHTML(JSON.stringify(staff))}'>
+                    <label for="staff_${staff.id}">${escapeHTML(staff.staff_name)} (${escapeHTML(staff.staff_email)})</label>
+                </div>`;
             });
-
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.error || 'An unknown error occurred.');
-            }
-
-            alert(result.message);
-
+            container.innerHTML = listHtml || '<p>No staff found. Please add staff members first.</p>';
         } catch (error) {
-            console.error("Error sending all data to webhook:", error);
+            console.error("Error loading staff for outreach:", error);
+            document.getElementById('outreach-staff-list-container').innerHTML = '<p class="alert alert-danger">Could not load staff.</p>';
+        }
+    }
+
+    async function handleOutreachNext() {
+        if (currentOutreachStep === 1) {
+            outreachSelections.staff = [];
+            const checkedStaff = document.querySelectorAll('#outreach-staff-list-container input[type="checkbox"]:checked');
+            if (checkedStaff.length === 0) {
+                alert("Please select at least one staff member.");
+                return;
+            }
+            checkedStaff.forEach(checkbox => {
+                outreachSelections.staff.push(JSON.parse(checkbox.value));
+            });
+            const confirmList = document.getElementById('outreach-staff-confirm-list');
+            confirmList.innerHTML = '<ul>' + outreachSelections.staff.map(s => `<li>${escapeHTML(s.staff_name)}</li>`).join('') + '</ul>';
+            showOutreachStep(2);
+        } else if (currentOutreachStep === 2) {
+            showOutreachStep(3);
+            try {
+                const response = await fetch(`${API_BASE_URL}/outlets/all`);
+                const outlets = await response.json();
+                const container = document.getElementById('outreach-outlets-list-container');
+                let listHtml = '';
+                outlets.forEach(outlet => {
+                    listHtml += `<div class="multi-select-item">
+                        <input type="checkbox" id="outlet_${outlet.replace(/\s+/g, '')}" name="outlet" value="${escapeHTML(outlet)}">
+                        <label for="outlet_${outlet.replace(/\s+/g, '')}">${escapeHTML(outlet)}</label>
+                    </div>`;
+                });
+                container.innerHTML = listHtml || '<p>No outlets found in the database.</p>';
+            } catch (error) {
+                console.error("Error loading outlets for outreach:", error);
+                document.getElementById('outreach-outlets-list-container').innerHTML = '<p class="alert alert-danger">Could not load outlets.</p>';
+            }
+        } else if (currentOutreachStep === 3) {
+            outreachSelections.outlets = [];
+            const checkedOutlets = document.querySelectorAll('#outreach-outlets-list-container input[type="checkbox"]:checked');
+            if (checkedOutlets.length === 0) {
+                alert("Please select at least one outlet.");
+                return;
+            }
+            checkedOutlets.forEach(checkbox => {
+                outreachSelections.outlets.push(checkbox.value);
+            });
+            document.getElementById('outreach-final-staff-list').innerHTML = '<ul>' + outreachSelections.staff.map(s => `<li>${escapeHTML(s.staff_name)}</li>`).join('') + '</ul>';
+            document.getElementById('outreach-final-outlets-list').innerHTML = '<ul>' + outreachSelections.outlets.map(o => `<li>${escapeHTML(o)}</li>`).join('') + '</ul>';
+            showOutreachStep(4);
+        }
+    }
+
+    async function handleSendTargetedOutreach() {
+        if(outreachSendBtn) {
+            outreachSendBtn.disabled = true;
+            outreachSendBtn.textContent = 'Sending...';
+        }
+        const payload = {
+            target_table: 'journalists', // Defaulting to journalists, can be made dynamic
+            outlet_names: outreachSelections.outlets,
+            staff_members: outreachSelections.staff
+        };
+        try {
+            const response = await fetch(`${API_BASE_URL}/webhook/send_targeted_outreach`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'An unknown error occurred.');
+            alert(result.message);
+            resetOutreachModal();
+        } catch(error) {
             alert(`Error: ${error.message}`);
         } finally {
-            // Re-enable button
-            if(sendAllBtn) {
-                sendAllBtn.disabled = false;
-                sendAllBtn.textContent = "Send All to Webhook";
+            if(outreachSendBtn) {
+                outreachSendBtn.disabled = false;
+                outreachSendBtn.textContent = 'Send to Webhook';
             }
         }
     }

@@ -576,6 +576,49 @@ th, td {
     width: 100%;
 }
 
+/* Outreach & Multi-select Modal Styles */
+.multi-select-container {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 1rem;
+    background-color: #fff;
+}
+.multi-select-item {
+    display: block;
+    padding: 5px;
+    border-radius: 3px;
+}
+.multi-select-item:hover {
+    background-color: #f1f1f1;
+}
+.multi-select-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+.multi-select-item label {
+    cursor: pointer;
+    font-weight: normal;
+}
+#outreach-outlet-search {
+    margin-bottom: 10px;
+}
+
+#outreach-staff-confirm-list ul,
+#outreach-final-staff-list ul,
+#outreach-final-outlets-list ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 10px 10px 10px 30px;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 0.5rem;
+}
+
 /* Staff Management Page Layout */
 .staff-management-container {
     display: grid;
