@@ -121,6 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function buildMappingUI(csvHeaders) {
+        // Advanced Debugging: Log the entire DOM body to see what the script sees.
+        console.log("DEBUG: Document body HTML at the time of search:", document.body.outerHTML);
+
         const targetTableSelect = document.getElementById('targetTableSelect'); // Find element just-in-time
         if (!targetTableSelect) {
             console.error("CRITICAL: Could not find 'targetTableSelect' element in the modal.");
