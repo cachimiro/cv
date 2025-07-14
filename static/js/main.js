@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelMappingBtn = document.getElementById('cancelMappingBtn');
     const runImportBtn = document.getElementById('runImportBtn');
     const mappingTableContainer = document.getElementById('mapping-table-container');
-    // const targetTableSelect = document.getElementById('targetTableSelect'); // DEFER looking for this
+
+    // Webhook Elements
+    const sendAllBtn = document.getElementById('sendAllBtn');
 
     const API_BASE_URL = '/api';
     let uploadedFile = null; // Variable to store the uploaded file temporarily
@@ -29,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeMappingModalBtn) closeMappingModalBtn.addEventListener('click', closeMappingModal);
     if (cancelMappingBtn) cancelMappingBtn.addEventListener('click', closeMappingModal);
     if (runImportBtn) runImportBtn.addEventListener('click', handleRunImport);
+    if (sendAllBtn) sendAllBtn.addEventListener('click', handleSendAllToWebhook);
 
     window.addEventListener('click', (event) => {
         if (event.target === mappingModal) {
@@ -239,4 +242,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Initial Load ---
     fetchTableData('journalists');
+
+    // --- Webhook Functions ---
+    async function handleSendAllToWebhook() {
+        if (!confirm("Are you sure you want to send all data from both the Journalists and Media Titles tables to the webhook?")) {
+            return;
+        }
+
+        // Optional: Provide visual feedback
+        if(sendAllBtn) {
+            sendAllBtn.disabled = true;
+            sendAllBtn.textContent = "Sending...";
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/webhook/send_all`, {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || 'An unknown error occurred.');
+            }
+
+            alert(result.message);
+
+        } catch (error) {
+            console.error("Error sending all data to webhook:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            // Re-enable button
+            if(sendAllBtn) {
+                sendAllBtn.disabled = false;
+                sendAllBtn.textContent = "Send All to Webhook";
+            }
+        }
+    }
 });

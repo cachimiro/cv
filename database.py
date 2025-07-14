@@ -211,7 +211,8 @@ if __name__ == '__main__':
 import requests
 import json
 
-MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/prelkg9vswvb4a0318swrt1pa4p82fiw"
+# The new webhook URL for sending journalist/media title data
+MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/k4lkx5fhwvqn2guadjdqredju2opac1r"
 
 def send_to_webhook(data_payload):
     """Sends the given data payload to the Make.com webhook."""

@@ -398,6 +398,39 @@ def delete_staff(staff_id):
         return jsonify({"error": "An internal server error occurred"}), 500
 
 
+# --- Webhook API Endpoints ---
+
+@app.route('/api/webhook/send_all', methods=['POST'])
+@login_required
+def send_all_to_webhook():
+    """
+    Fetches all data from journalists and media_titles tables and sends it to a webhook.
+    """
+    try:
+        conn = database.get_db_connection()
+        journalists = conn.execute('SELECT * FROM journalists').fetchall()
+        media_titles = conn.execute('SELECT * FROM media_titles').fetchall()
+        conn.close()
+
+        payload = {
+            "journalists": [dict(row) for row in journalists],
+            "media_titles": [dict(row) for row in media_titles]
+        }
+
+        if database.send_to_webhook(payload):
+            return jsonify({
+                "message": "Successfully sent all data to webhook.",
+                "sent_journalists": len(journalists),
+                "sent_media_titles": len(media_titles)
+            }), 200
+        else:
+            return jsonify({"error": "Failed to send data to webhook."}), 500
+
+    except Exception as e:
+        print(f"Error in send_all_to_webhook: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+
+
 # --- Old Company Data API Endpoints (to be refactored/removed) ---
 
 @app.route('/api/companies', methods=['GET'])
