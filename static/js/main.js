@@ -19,13 +19,19 @@ function initApp() {
     const createOutreachBtn = document.getElementById('createOutreachBtn');
 
     if (uploadCsvBtn && csvFileInput) {
-        uploadCsvBtn.addEventListener('click', () => csvFileInput.click());
+        uploadCsvBtn.addEventListener('click', () => {
+            alert("Upload button was clicked!");
+            csvFileInput.click();
+        });
         csvFileInput.addEventListener('change', handleFileSelect);
         console.log("Attached CSV upload listeners.");
     }
 
     if (createOutreachBtn) {
-        createOutreachBtn.addEventListener('click', openOutreachModal);
+        createOutreachBtn.addEventListener('click', () => {
+            alert("Create Outreach button was clicked!");
+            openOutreachModal();
+        });
         console.log("Attached outreach listener.");
     }
 
