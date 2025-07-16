@@ -93,9 +93,51 @@ def create_tables():
     ''')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_staff_email ON staff (staff_email)')
 
+    # Articles Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Article Images Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS article_images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            article_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            FOREIGN KEY (article_id) REFERENCES articles (id) ON DELETE CASCADE
+        )
+    ''')
+
+    # Emails Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Email Images Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS email_images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            FOREIGN KEY (email_id) REFERENCES emails (id) ON DELETE CASCADE
+        )
+    ''')
+
     conn.commit()
     conn.close()
-    print("Database tables (companies, users, journalists, media_titles, staff) checked/created successfully.")
+    print("Database tables (companies, users, journalists, media_titles, staff, articles, article_images, emails, email_images) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""

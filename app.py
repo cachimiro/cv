@@ -171,6 +171,18 @@ def edit_article(article_id):
     """Serves the article editor page."""
     return render_template('article_editor.html', article_id=article_id)
 
+@app.route('/emails')
+@login_required
+def emails():
+    """Serves the email management page."""
+    return render_template('emails.html')
+
+@app.route('/emails/<int:email_id>/edit')
+@login_required
+def edit_email(email_id):
+    """Serves the email editor page."""
+    return render_template('email_editor.html', email_id=email_id)
+
 
 # --- API Endpoints ---
 # All API endpoints should also require login if they are primarily supporting the web UI
@@ -760,6 +772,97 @@ def delete_article(article_id):
 @app.route('/api/articles/image_upload', methods=['POST'])
 @login_required
 def upload_article_image():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        return jsonify({'location': f'/{filepath}'})
+
+
+# --- Email CMS Endpoints ---
+
+@app.route('/api/emails/upload', methods=['POST'])
+@login_required
+def upload_email():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Parse the docx file
+        document = docx.Document(filepath)
+        content_html = ""
+        for para in document.paragraphs:
+            content_html += f"<p>{para.text}</p>"
+
+        title = request.form.get('title', 'Untitled')
+
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO emails (title, content) VALUES (?, ?)", (title, content_html))
+        conn.commit()
+        email_id = cursor.lastrowid
+        conn.close()
+
+        return jsonify({"message": "Email uploaded successfully", "email_id": email_id}), 201
+    else:
+        return jsonify({"error": "Invalid file type"}), 400
+
+@app.route('/api/emails', methods=['GET'])
+@login_required
+def get_emails():
+    conn = database.get_db_connection()
+    emails = conn.execute('SELECT * FROM emails ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in emails])
+
+@app.route('/api/emails/<int:email_id>', methods=['GET'])
+@login_required
+def get_email(email_id):
+    conn = database.get_db_connection()
+    email = conn.execute('SELECT * FROM emails WHERE id = ?', (email_id,)).fetchone()
+    conn.close()
+    if email is None:
+        return jsonify({"error": "Email not found"}), 404
+    return jsonify(dict(email))
+
+@app.route('/api/emails/<int:email_id>', methods=['PUT'])
+@login_required
+def update_email(email_id):
+    data = request.get_json()
+    title = data.get('title')
+    content = data.get('content')
+
+    conn = database.get_db_connection()
+    conn.execute('UPDATE emails SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (title, content, email_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Email updated successfully"})
+
+@app.route('/api/emails/<int:email_id>', methods=['DELETE'])
+@login_required
+def delete_email(email_id):
+    conn = database.get_db_connection()
+    conn.execute('DELETE FROM emails WHERE id = ?', (email_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Email deleted successfully"})
+
+@app.route('/api/emails/image_upload', methods=['POST'])
+@login_required
+def upload_email_image():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']

@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block title %}Email Editor - Sway PR Data{% endblock %}
+{% block page_title %}Email Editor{% endblock %}
+
+{% block content %}
+<form id="emailEditorForm">
+    <input type="hidden" id="emailId" name="id">
+    <div class="form-group">
+        <label for="emailTitle">Title</label>
+        <input type="text" id="emailTitle" name="title" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="emailContent">Content</label>
+        <textarea id="emailContent" name="content"></textarea>
+    </div>
+</form>
+<div class="controls-row">
+    <div class="action-control">
+        <button id="saveEmailBtn" class="btn btn-primary">Save Changes</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailId = window.location.pathname.split('/')[2];
+    document.getElementById('emailId').value = emailId;
+
+    tinymce.init({
+        selector: '#emailContent',
+        plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+        toolbar_mode: 'floating',
+        images_upload_url: '/api/emails/image_upload',
+        images_upload_handler: async (blobInfo, success, failure) => {
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            const response = await fetch('/api/emails/image_upload', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (response.ok) {
+                success(result.location);
+            } else {
+                failure(result.error);
+            }
+        }
+    });
+
+    fetch(`/api/emails/${emailId}`)
+        .then(response => response.json())
+        .then(email => {
+            document.getElementById('emailTitle').value = email.title;
+            tinymce.get('emailContent').setContent(email.content);
+        });
+
+    const saveEmailBtn = document.getElementById('saveEmailBtn');
+    saveEmailBtn.addEventListener('click', async () => {
+        const title = document.getElementById('emailTitle').value;
+        const content = tinymce.get('emailContent').getContent();
+
+        const response = await fetch(`/api/emails/${emailId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title, content })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    });
+});
+</script>
+{% endblock %}

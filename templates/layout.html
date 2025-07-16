@@ -73,6 +73,8 @@
                     <!-- Placeholder icons: pencil for dashboard/data, gear for settings, user for profile -->
                 <li class="{{ 'active' if request.endpoint == 'data_tables_placeholder' else '' }}"><a href="#"><span class="nav-icon">&#128196;</span> Data Tables</a></li>
                 <li class="{{ 'active' if request.endpoint == 'staff_management' else '' }}"><a href="{{ url_for('staff_management') }}"><span class="nav-icon">&#128101;</span> Staff</a></li>
+                <li class="{{ 'active' if request.endpoint == 'articles' else '' }}"><a href="{{ url_for('articles') }}"><span class="nav-icon">&#128221;</span> Articles</a></li>
+                <li class="{{ 'active' if request.endpoint == 'emails' else '' }}"><a href="{{ url_for('emails') }}"><span class="nav-icon">&#9993;</span> Emails</a></li>
                 <li class="{{ 'active' if request.endpoint == 'settings_placeholder' else '' }}"><a href="#"><span class="nav-icon">&#9881;</span> Settings</a></li>
                 </ul>
             </nav>
