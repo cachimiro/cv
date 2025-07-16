@@ -5,7 +5,7 @@
 
 {% block content %}
 <form id="articleEditorForm">
-    <input type="hidden" id="articleId" name="id">
+    <input type="hidden" id="articleId" name="id" value="{{ article_id }}">
     <div class="form-group">
         <label for="articleTitle">Title</label>
         <input type="text" id="articleTitle" name="title" class="form-control" required>
@@ -25,15 +25,38 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const articleId = document.getElementById('articleId').value;
+
     tinymce.init({
         selector: '#articleContent',
         plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
         toolbar_mode: 'floating',
+        images_upload_url: '/api/articles/image_upload',
+        images_upload_handler: async (blobInfo, success, failure) => {
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            const response = await fetch('/api/articles/image_upload', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (response.ok) {
+                success(result.location);
+            } else {
+                failure(result.error);
+            }
+        }
     });
+
+    fetch(`/api/articles/${articleId}`)
+        .then(response => response.json())
+        .then(article => {
+            document.getElementById('articleTitle').value = article.title;
+            tinymce.get('articleContent').setContent(article.content);
+        });
 
     const saveArticleBtn = document.getElementById('saveArticleBtn');
     saveArticleBtn.addEventListener('click', async () => {
-        const articleId = document.getElementById('articleId').value;
         const title = document.getElementById('articleTitle').value;
         const content = tinymce.get('articleContent').getContent();
 

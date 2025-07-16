@@ -1,0 +1,59 @@
+<!-- import-modal.html -->
+<div class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title">Map CSV Columns to Database Fields</h1>
+            <button class="close-icon">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <input type="text" id="filter-csv-columns" class="search-box" placeholder="Filter CSV columns...">
+                <button id="auto-match-btn" class="btn btn--secondary">Auto-match</button>
+            </div>
+            <table class="mapping-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">CSV Column</th>
+                        <th style="width: 55%;">Database Field</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="mapping-row">
+                        <td>
+                            <span>firstName</span>
+                            <span class="check-icon">&#10003;</span>
+                        </td>
+                        <td>
+                            <select class="mapping-select">
+                                <option value="">-- Ignore this column --</option>
+                                <option value="first_name">first_name</option>
+                                <option value="last_name">last_name</option>
+                                <option value="email">email</option>
+                            </select>
+                            <button class="ghost-btn">Ignore</button>
+                        </td>
+                    </tr>
+                    <tr class="mapping-row">
+                        <td>
+                            <span>email_address</span>
+                            <span class="check-icon">&#10003;</span>
+                        </td>
+                        <td>
+                            <select class="mapping-select">
+                                <option value="">-- Ignore this column --</option>
+                                <option value="first_name">first_name</option>
+                                <option value="last_name">last_name</option>
+                                <option value="email">email</option>
+                            </select>
+                            <button class="ghost-btn">Ignore</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button id="cancel" class="btn btn--secondary">Cancel</button>
+            <button id="run-import" class="btn btn--primary">Run Import</button>
+        </div>
+    </div>
+</div>

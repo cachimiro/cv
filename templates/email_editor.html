@@ -5,7 +5,7 @@
 
 {% block content %}
 <form id="emailEditorForm">
-    <input type="hidden" id="emailId" name="id">
+    <input type="hidden" id="emailId" name="id" value="{{ email_id }}">
     <div class="form-group">
         <label for="emailTitle">Title</label>
         <input type="text" id="emailTitle" name="title" class="form-control" required>
@@ -25,8 +25,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const emailId = window.location.pathname.split('/')[2];
-    document.getElementById('emailId').value = emailId;
+    const emailId = document.getElementById('emailId').value;
 
     tinymce.init({
         selector: '#emailContent',
