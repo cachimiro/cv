@@ -735,6 +735,14 @@ def upload_article():
     else:
         return jsonify({"error": "Invalid file type"}), 400
 
+@app.route('/api/articles', methods=['GET'])
+@login_required
+def get_articles():
+    conn = database.get_db_connection()
+    articles = conn.execute('SELECT * FROM articles ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in articles])
+
 @app.route('/api/articles/<int:article_id>', methods=['GET'])
 @login_required
 def get_article(article_id):
