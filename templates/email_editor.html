@@ -27,38 +27,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const emailId = document.getElementById('emailId').value;
 
-    tinymce.init({
-        selector: '#emailContent',
-        plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
-        toolbar_mode: 'floating',
-        images_upload_url: '/api/emails/image_upload',
-        images_upload_handler: async (blobInfo, success, failure) => {
-            const formData = new FormData();
-            formData.append('file', blobInfo.blob(), blobInfo.filename());
-            const response = await fetch('/api/emails/image_upload', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            if (response.ok) {
-                success(result.location);
-            } else {
-                failure(result.error);
-            }
-        }
-    });
-
     fetch(`/api/emails/${emailId}`)
         .then(response => response.json())
         .then(email => {
             document.getElementById('emailTitle').value = email.title;
-            tinymce.get('emailContent').setContent(email.content);
+            document.getElementById('emailContent').value = email.content;
         });
 
     const saveEmailBtn = document.getElementById('saveEmailBtn');
     saveEmailBtn.addEventListener('click', async () => {
         const title = document.getElementById('emailTitle').value;
-        const content = tinymce.get('emailContent').getContent();
+        const content = document.getElementById('emailContent').value;
 
         const response = await fetch(`/api/emails/${emailId}`, {
             method: 'PUT',
