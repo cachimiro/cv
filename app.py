@@ -704,35 +704,53 @@ def allowed_file(filename):
 @app.route('/api/articles/upload', methods=['POST'])
 @login_required
 def upload_article():
+    print("--- Entering upload_article ---")
     if 'file' not in request.files:
+        print("ERROR: No 'file' in request.files")
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']
+    print(f"File received: {file.filename}")
+
     if file.filename == '':
+        print("ERROR: Filename is empty")
         return jsonify({"error": "No selected file"}), 400
+
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        try:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            print(f"Saving file to: {filepath}")
+            file.save(filepath)
+            print("File saved successfully.")
 
-        # Parse the docx file
-        document = docx.Document(filepath)
-        content_html = ""
-        for para in document.paragraphs:
-            content_html += f"<p>{para.text}</p>"
+            print("Parsing .docx file...")
+            document = docx.Document(filepath)
+            content_html = "".join([f"<p>{para.text}</p>" for para in document.paragraphs])
+            print("Finished parsing .docx file.")
 
-        # For now, we are not handling images, but we will add that later.
+            title = request.form.get('title', 'Untitled')
+            print(f"Article title: {title}")
 
-        title = request.form.get('title', 'Untitled')
+            print("Connecting to database...")
+            conn = database.get_db_connection()
+            cursor = conn.cursor()
+            print("Executing INSERT statement...")
+            cursor.execute("INSERT INTO articles (title, content) VALUES (?, ?)", (title, content_html))
+            conn.commit()
+            article_id = cursor.lastrowid
+            print(f"New article ID: {article_id}")
+            conn.close()
+            print("Database connection closed.")
 
-        conn = database.get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO articles (title, content) VALUES (?, ?)", (title, content_html))
-        conn.commit()
-        article_id = cursor.lastrowid
-        conn.close()
-
-        return jsonify({"message": "Article uploaded successfully", "article_id": article_id}), 201
+            print("--- Exiting upload_article successfully ---")
+            return jsonify({"message": "Article uploaded successfully", "article_id": article_id}), 201
+        except Exception as e:
+            print(f"!!!!!!!!!! EXCEPTION in upload_article: {e} !!!!!!!!!!!")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": "An internal server error occurred."}), 500
     else:
+        print(f"ERROR: File type not allowed for {file.filename}")
         return jsonify({"error": "Invalid file type"}), 400
 
 def allowed_file(filename):
@@ -801,33 +819,53 @@ def upload_article_image():
 @app.route('/api/emails/upload', methods=['POST'])
 @login_required
 def upload_email():
+    print("--- Entering upload_email ---")
     if 'file' not in request.files:
+        print("ERROR: No 'file' in request.files")
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']
+    print(f"File received: {file.filename}")
+
     if file.filename == '':
+        print("ERROR: Filename is empty")
         return jsonify({"error": "No selected file"}), 400
+
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        try:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            print(f"Saving file to: {filepath}")
+            file.save(filepath)
+            print("File saved successfully.")
 
-        # Parse the docx file
-        document = docx.Document(filepath)
-        content_html = ""
-        for para in document.paragraphs:
-            content_html += f"<p>{para.text}</p>"
+            print("Parsing .docx file...")
+            document = docx.Document(filepath)
+            content_html = "".join([f"<p>{para.text}</p>" for para in document.paragraphs])
+            print("Finished parsing .docx file.")
 
-        title = request.form.get('title', 'Untitled')
+            title = request.form.get('title', 'Untitled')
+            print(f"Email title: {title}")
 
-        conn = database.get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO emails (title, content) VALUES (?, ?)", (title, content_html))
-        conn.commit()
-        email_id = cursor.lastrowid
-        conn.close()
+            print("Connecting to database...")
+            conn = database.get_db_connection()
+            cursor = conn.cursor()
+            print("Executing INSERT statement...")
+            cursor.execute("INSERT INTO emails (title, content) VALUES (?, ?)", (title, content_html))
+            conn.commit()
+            email_id = cursor.lastrowid
+            print(f"New email ID: {email_id}")
+            conn.close()
+            print("Database connection closed.")
 
-        return jsonify({"message": "Email uploaded successfully", "email_id": email_id}), 201
+            print("--- Exiting upload_email successfully ---")
+            return jsonify({"message": "Email uploaded successfully", "email_id": email_id}), 201
+        except Exception as e:
+            print(f"!!!!!!!!!! EXCEPTION in upload_email: {e} !!!!!!!!!!!")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": "An internal server error occurred."}), 500
     else:
+        print(f"ERROR: File type not allowed for {file.filename}")
         return jsonify({"error": "Invalid file type"}), 400
 
 @app.route('/api/emails', methods=['GET'])
@@ -888,5 +926,8 @@ def upload_email_image():
 
 
 if __name__ == '__main__':
+    # Create the uploads folder if it doesn't exist
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
     database.create_tables()
     app.run(debug=True, host='0.0.0.0', port=5000)
