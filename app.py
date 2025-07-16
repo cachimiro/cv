@@ -159,6 +159,18 @@ def logout():
     flash('You have been logged out successfully.', 'success')
     return redirect(url_for('login'))
 
+@app.route('/articles')
+@login_required
+def articles():
+    """Serves the article management page."""
+    return render_template('articles.html')
+
+@app.route('/articles/<int:article_id>/edit')
+@login_required
+def edit_article(article_id):
+    """Serves the article editor page."""
+    return render_template('article_editor.html', article_id=article_id)
+
 
 # --- API Endpoints ---
 # All API endpoints should also require login if they are primarily supporting the web UI
@@ -663,6 +675,102 @@ def delete_company_api(company_id): # Renamed
     except Exception as e:
         print(f"Error in DELETE /api/companies/{company_id}: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
+
+# --- Article CMS Endpoints ---
+import docx
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'docx'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/api/articles/upload', methods=['POST'])
+@login_required
+def upload_article():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Parse the docx file
+        document = docx.Document(filepath)
+        content_html = ""
+        for para in document.paragraphs:
+            content_html += f"<p>{para.text}</p>"
+
+        # For now, we are not handling images, but we will add that later.
+
+        title = request.form.get('title', 'Untitled')
+
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO articles (title, content) VALUES (?, ?)", (title, content_html))
+        conn.commit()
+        article_id = cursor.lastrowid
+        conn.close()
+
+        return jsonify({"message": "Article uploaded successfully", "article_id": article_id}), 201
+    else:
+        return jsonify({"error": "Invalid file type"}), 400
+
+@app.route('/api/articles/<int:article_id>', methods=['GET'])
+@login_required
+def get_article(article_id):
+    conn = database.get_db_connection()
+    article = conn.execute('SELECT * FROM articles WHERE id = ?', (article_id,)).fetchone()
+    conn.close()
+    if article is None:
+        return jsonify({"error": "Article not found"}), 404
+    return jsonify(dict(article))
+
+@app.route('/api/articles/<int:article_id>', methods=['PUT'])
+@login_required
+def update_article(article_id):
+    data = request.get_json()
+    title = data.get('title')
+    content = data.get('content')
+
+    conn = database.get_db_connection()
+    conn.execute('UPDATE articles SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (title, content, article_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Article updated successfully"})
+
+@app.route('/api/articles/<int:article_id>', methods=['DELETE'])
+@login_required
+def delete_article(article_id):
+    conn = database.get_db_connection()
+    conn.execute('DELETE FROM articles WHERE id = ?', (article_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Article deleted successfully"})
+
+@app.route('/api/articles/image_upload', methods=['POST'])
+@login_required
+def upload_article_image():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        return jsonify({'location': f'/{filepath}'})
+
 
 if __name__ == '__main__':
     database.create_tables()

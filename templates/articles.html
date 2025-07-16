@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}Articles - Sway PR Data{% endblock %}
+{% block page_title %}Article Management{% endblock %}
+
+{% block content %}
+<div class="controls-row">
+    <div class="action-control">
+        <button id="uploadArticleBtn" class="btn btn-primary btn-add-new">
+            <span class="btn-icon">+</span> Upload New Article
+        </button>
+    </div>
+</div>
+
+<div id="uploadArticleModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Upload Article</h3>
+            <button id="closeUploadModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="uploadArticleForm">
+                <div class="form-group">
+                    <label for="articleTitle">Title</label>
+                    <input type="text" id="articleTitle" name="title" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="articleFile">Word Document (.docx)</label>
+                    <input type="file" id="articleFile" name="file" class="form-control" accept=".docx" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="cancelUploadBtn" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="submitUploadBtn" class="btn btn-primary">Upload</button>
+        </div>
+    </div>
+</div>
+
+<div id="articlesList">
+    <p>Loading articles...</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function fetchArticles() {
+    const articlesListDiv = document.getElementById('articlesList');
+    try {
+        const response = await fetch('/api/articles');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const articles = await response.json();
+        renderArticles(articles);
+    } catch (error) {
+        console.error('Error fetching articles:', error);
+        articlesListDiv.innerHTML = `<p class="alert alert-danger">Error loading articles. Please try again later.</p>`;
+    }
+}
+
+function renderArticles(articles) {
+    const articlesListDiv = document.getElementById('articlesList');
+    if (articles.length === 0) {
+        articlesListDiv.innerHTML = '<p>No articles found. Upload one to get started!</p>';
+        return;
+    }
+    let tableHtml = `<div class="companies-table-container"><table class="companies-table"><thead><tr>
+                    <th>Title</th><th>Created At</th><th>Updated At</th><th>Actions</th>
+                    </tr></thead><tbody>`;
+    articles.forEach(article => {
+        tableHtml += `<tr>
+                <td><a href="/articles/${article.id}/edit">${article.title}</a></td>
+                <td>${new Date(article.created_at).toLocaleString()}</td>
+                <td>${new Date(article.updated_at).toLocaleString()}</td>
+                <td class="action-buttons">
+                    <a href="/articles/${article.id}/edit" class="btn btn-secondary btn-sm">Edit</a>
+                    <button class="btn btn-danger btn-sm delete-article-btn" data-id="${article.id}">Delete</button>
+                </td></tr>`;
+    });
+    tableHtml += '</tbody></table></div>';
+    articlesListDiv.innerHTML = tableHtml;
+
+    document.querySelectorAll('.delete-article-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const articleId = event.target.dataset.id;
+            if (confirm('Are you sure you want to delete this article?')) {
+                const response = await fetch(`/api/articles/${articleId}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    fetchArticles();
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            }
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArticleBtn = document.getElementById('uploadArticleBtn');
+    const uploadArticleModal = document.getElementById('uploadArticleModal');
+    const closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
+    const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+    const submitUploadBtn = document.getElementById('submitUploadBtn');
+    const uploadArticleForm = document.getElementById('uploadArticleForm');
+
+    uploadArticleBtn.addEventListener('click', () => {
+        uploadArticleModal.style.display = 'block';
+    });
+
+    closeUploadModalBtn.addEventListener('click', () => {
+        uploadArticleModal.style.display = 'none';
+    });
+
+    cancelUploadBtn.addEventListener('click', () => {
+        uploadArticleModal.style.display = 'none';
+    });
+
+    submitUploadBtn.addEventListener('click', async () => {
+        const formData = new FormData(uploadArticleForm);
+        const response = await fetch('/api/articles/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            uploadArticleModal.style.display = 'none';
+            fetchArticles();
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    });
+
+    fetchArticles();
+});
+</script>
+{% endblock %}
