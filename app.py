@@ -735,6 +735,10 @@ def upload_article():
     else:
         return jsonify({"error": "Invalid file type"}), 400
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/api/articles', methods=['GET'])
 @login_required
 def get_articles():
