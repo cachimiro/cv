@@ -40,6 +40,18 @@
 <div id="emailsList">
     <p>Loading emails...</p>
 </div>
+
+<div id="emailViewModal" class="modal" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3 id="emailViewTitle" class="modal-title"></h3>
+            <button id="closeEmailViewModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="emailViewContent"></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -68,7 +80,7 @@ function renderEmails(emails) {
                     </tr></thead><tbody>`;
     emails.forEach(email => {
         tableHtml += `<tr>
-                <td><a href="/emails/${email.id}/edit">${email.title}</a></td>
+                <td><a href="#" class="view-email-btn" data-id="${email.id}">${email.title}</a></td>
                 <td>${new Date(email.created_at).toLocaleString()}</td>
                 <td>${new Date(email.updated_at).toLocaleString()}</td>
                 <td class="action-buttons">
@@ -78,6 +90,17 @@ function renderEmails(emails) {
     });
     tableHtml += '</tbody></table></div>';
     emailsListDiv.innerHTML = tableHtml;
+
+    document.querySelectorAll('.view-email-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const emailId = event.target.dataset.id;
+            const response = await fetch(`/api/emails/${emailId}`);
+            const email = await response.json();
+            document.getElementById('emailViewTitle').textContent = email.title;
+            document.getElementById('emailViewContent').innerHTML = email.content;
+            document.getElementById('emailViewModal').style.display = 'block';
+        });
+    });
 
     document.querySelectorAll('.delete-email-btn').forEach(button => {
         button.addEventListener('click', async (event) => {
@@ -103,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelUploadBtn = document.getElementById('cancelUploadBtn');
     const submitUploadBtn = document.getElementById('submitUploadBtn');
     const uploadEmailForm = document.getElementById('uploadEmailForm');
+    const emailViewModal = document.getElementById('emailViewModal');
+    const closeEmailViewModalBtn = document.getElementById('closeEmailViewModalBtn');
 
     uploadEmailBtn.addEventListener('click', () => {
         uploadEmailModal.style.display = 'block';
@@ -130,6 +155,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             alert(`Error: ${result.error}`);
         }
+    });
+
+    closeEmailViewModalBtn.addEventListener('click', () => {
+        emailViewModal.style.display = 'none';
     });
 
     fetchEmails();

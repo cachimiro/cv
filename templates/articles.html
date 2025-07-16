@@ -40,6 +40,18 @@
 <div id="articlesList">
     <p>Loading articles...</p>
 </div>
+
+<div id="articleViewModal" class="modal" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3 id="articleViewTitle" class="modal-title"></h3>
+            <button id="closeArticleViewModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="articleViewContent"></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -68,7 +80,7 @@ function renderArticles(articles) {
                     </tr></thead><tbody>`;
     articles.forEach(article => {
         tableHtml += `<tr>
-                <td><a href="/articles/${article.id}/edit">${article.title}</a></td>
+                <td><a href="#" class="view-article-btn" data-id="${article.id}">${article.title}</a></td>
                 <td>${new Date(article.created_at).toLocaleString()}</td>
                 <td>${new Date(article.updated_at).toLocaleString()}</td>
                 <td class="action-buttons">
@@ -78,6 +90,17 @@ function renderArticles(articles) {
     });
     tableHtml += '</tbody></table></div>';
     articlesListDiv.innerHTML = tableHtml;
+
+    document.querySelectorAll('.view-article-btn').forEach(button => {
+        button.addEventListener('click', async (event) => {
+            const articleId = event.target.dataset.id;
+            const response = await fetch(`/api/articles/${articleId}`);
+            const article = await response.json();
+            document.getElementById('articleViewTitle').textContent = article.title;
+            document.getElementById('articleViewContent').innerHTML = article.content;
+            document.getElementById('articleViewModal').style.display = 'block';
+        });
+    });
 
     document.querySelectorAll('.delete-article-btn').forEach(button => {
         button.addEventListener('click', async (event) => {
@@ -103,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelUploadBtn = document.getElementById('cancelUploadBtn');
     const submitUploadBtn = document.getElementById('submitUploadBtn');
     const uploadArticleForm = document.getElementById('uploadArticleForm');
+    const articleViewModal = document.getElementById('articleViewModal');
+    const closeArticleViewModalBtn = document.getElementById('closeArticleViewModalBtn');
 
     uploadArticleBtn.addEventListener('click', () => {
         uploadArticleModal.style.display = 'block';
@@ -130,6 +155,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             alert(`Error: ${result.error}`);
         }
+    });
+
+    closeArticleViewModalBtn.addEventListener('click', () => {
+        articleViewModal.style.display = 'none';
     });
 
     fetchArticles();

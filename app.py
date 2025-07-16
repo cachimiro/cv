@@ -725,7 +725,21 @@ def upload_article():
 
             print("Parsing .docx file...")
             document = docx.Document(filepath)
-            content_html = "".join([f"<p>{para.text}</p>" for para in document.paragraphs])
+            content_html = ""
+            for para in document.paragraphs:
+                content_html += f"<p>{para.text}</p>"
+
+            # Extract and save images
+            image_paths = []
+            for rel in document.part.rels.values():
+                if "image" in rel.target_ref:
+                    image_data = rel.target_part.blob
+                    image_filename = os.path.basename(rel.target_ref)
+                    image_filepath = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+                    with open(image_filepath, "wb") as f:
+                        f.write(image_data)
+                    image_paths.append(image_filepath)
+
             print("Finished parsing .docx file.")
 
             title = request.form.get('title', 'Untitled')
@@ -739,6 +753,11 @@ def upload_article():
             conn.commit()
             article_id = cursor.lastrowid
             print(f"New article ID: {article_id}")
+
+            for image_path in image_paths:
+                cursor.execute("INSERT INTO article_images (article_id, image_path) VALUES (?, ?)", (article_id, image_path))
+            conn.commit()
+
             conn.close()
             print("Database connection closed.")
 
@@ -770,10 +789,17 @@ def get_articles():
 def get_article(article_id):
     conn = database.get_db_connection()
     article = conn.execute('SELECT * FROM articles WHERE id = ?', (article_id,)).fetchone()
-    conn.close()
     if article is None:
+        conn.close()
         return jsonify({"error": "Article not found"}), 404
-    return jsonify(dict(article))
+
+    images = conn.execute('SELECT image_path FROM article_images WHERE article_id = ?', (article_id,)).fetchall()
+    conn.close()
+
+    article_data = dict(article)
+    article_data['images'] = [image['image_path'] for image in images]
+
+    return jsonify(article_data)
 
 @app.route('/api/articles/<int:article_id>', methods=['PUT'])
 @login_required
@@ -840,7 +866,20 @@ def upload_email():
 
             print("Parsing .docx file...")
             document = docx.Document(filepath)
-            content_html = "".join([f"<p>{para.text}</p>" for para in document.paragraphs])
+            content_html = ""
+            for para in document.paragraphs:
+                content_html += f"<p>{para.text}</p>"
+
+            # Extract and save images
+            image_paths = []
+            for rel in document.part.rels.values():
+                if "image" in rel.target_ref:
+                    image_data = rel.target_part.blob
+                    image_filename = os.path.basename(rel.target_ref)
+                    image_filepath = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+                    with open(image_filepath, "wb") as f:
+                        f.write(image_data)
+                    image_paths.append(image_filepath)
             print("Finished parsing .docx file.")
 
             title = request.form.get('title', 'Untitled')
@@ -854,6 +893,11 @@ def upload_email():
             conn.commit()
             email_id = cursor.lastrowid
             print(f"New email ID: {email_id}")
+
+            for image_path in image_paths:
+                cursor.execute("INSERT INTO email_images (email_id, image_path) VALUES (?, ?)", (email_id, image_path))
+            conn.commit()
+
             conn.close()
             print("Database connection closed.")
 
@@ -881,10 +925,17 @@ def get_emails():
 def get_email(email_id):
     conn = database.get_db_connection()
     email = conn.execute('SELECT * FROM emails WHERE id = ?', (email_id,)).fetchone()
-    conn.close()
     if email is None:
+        conn.close()
         return jsonify({"error": "Email not found"}), 404
-    return jsonify(dict(email))
+
+    images = conn.execute('SELECT image_path FROM email_images WHERE email_id = ?', (email_id,)).fetchall()
+    conn.close()
+
+    email_data = dict(email)
+    email_data['images'] = [image['image_path'] for image in images]
+
+    return jsonify(email_data)
 
 @app.route('/api/emails/<int:email_id>', methods=['PUT'])
 @login_required
