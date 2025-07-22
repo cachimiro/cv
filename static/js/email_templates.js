@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${escapeHTML(template.name)}</td>
-                    <td><pre>${escapeHTML(template.content.substring(0, 150))}${template.content.length > 150 ? '...' : ''}</pre></td>
+                    <td><pre class="template-content">${escapeHTML(template.content.substring(0, 150))}${template.content.length > 150 ? '...' : ''}</pre></td>
                     <td class="action-buttons">
                         <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})">View</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">Delete</button>
@@ -107,11 +107,26 @@ function escapeHTML(str) {
     });
 }
 
-// Placeholder for view/delete functions
-function viewTemplate(id) {
-    alert(`Viewing template ID: ${id}`);
-    // Future implementation: open a modal with the full template content
+async function viewTemplate(id) {
+    try {
+        const response = await fetch(`/api/email-template/${id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const template = await response.json();
+
+        const modal = document.getElementById('edit-modal');
+        modal.querySelector('#edit-id').value = template.id;
+        modal.querySelector('#edit-name').value = template.name;
+        modal.querySelector('#edit-content').value = template.content;
+
+        modal.style.display = 'block';
+    } catch (error) {
+        console.error('Error fetching template:', error);
+        alert('Could not fetch template details.');
+    }
 }
+
 
 function deleteTemplate(id) {
     if (confirm(`Are you sure you want to delete template ID: ${id}?`)) {

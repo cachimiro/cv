@@ -312,6 +312,19 @@ def get_email_templates():
     conn.close()
     return jsonify([dict(row) for row in templates])
 
+@app.route('/api/email-template/<int:template_id>', methods=['GET'])
+@login_required
+def get_email_template(template_id):
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, content FROM email_templates WHERE id = ?", (template_id,))
+    template = cursor.fetchone()
+    conn.close()
+    if template:
+        return jsonify(dict(template))
+    else:
+        return jsonify({"error": "Template not found"}), 404
+
 @app.route('/api/upload-template', methods=['POST'])
 @login_required
 def upload_template():
