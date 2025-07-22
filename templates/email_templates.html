@@ -63,7 +63,5 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script>
-        // JavaScript for handling email templates will go here
-    </script>
+    <script src="{{ url_for('static', filename='js/email_templates.js') }}"></script>
 {% endblock %}

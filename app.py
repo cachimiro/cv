@@ -302,6 +302,16 @@ def csv_run_import():
         conn.close()
 
 # --- Email Template API Endpoints ---
+@app.route('/api/email-templates', methods=['GET'])
+@login_required
+def get_email_templates():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, content FROM email_templates")
+    templates = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in templates])
+
 @app.route('/api/upload-template', methods=['POST'])
 @login_required
 def upload_template():
