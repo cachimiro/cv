@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import database # To interact with the db
 
 class User(UserMixin):
-    def __init__(self, id, username, email=None, password_hash=None, db_is_active=True, is_admin=False): # Renamed is_active to db_is_active
+    def __init__(self, username, id=None, email=None, password_hash=None, db_is_active=True, is_admin=False): # Renamed is_active to db_is_active
         self.id = id
         self.username = username
         self.email = email

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Templates</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Email Templates</h1>
+
+    <div class="container">
+        <h2>Upload a Document</h2>
+        <form id="upload-form" action="/api/upload-template" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".doc, .docx, .pdf" required>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Existing Templates</h2>
+        <table id="templates-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Content</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Template rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Template</h2>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="edit-name">Name</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-content">Content</label>
+                    <textarea id="edit-content" rows="10" required></textarea>
+                </div>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

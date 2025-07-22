@@ -93,9 +93,19 @@ def create_tables():
     ''')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_staff_email ON staff (staff_email)')
 
+    # Email Templates Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS email_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            content TEXT NOT NULL,
+            image BLOB
+        )
+    ''')
+
     conn.commit()
     conn.close()
-    print("Database tables (companies, users, journalists, media_titles, staff) checked/created successfully.")
+    print("Database tables (companies, users, journalists, media_titles, staff, email_templates) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""

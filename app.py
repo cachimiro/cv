@@ -54,6 +54,12 @@ def staff_management():
     """Serves the staff management page."""
     return render_template('staff.html')
 
+@app.route('/email-templates')
+@login_required
+def email_templates():
+    """Serves the email templates page."""
+    return render_template('email_templates.html')
+
 @app.route('/')
 @login_required
 def index():
@@ -168,6 +174,20 @@ def logout():
 import csv
 import io # For reading file in memory
 import json # For parsing the column mapping
+import docx
+import PyPDF2
+from werkzeug.utils import secure_filename
+
+def extract_text_from_docx(file_stream):
+    doc = docx.Document(file_stream)
+    return "\n".join([para.text for para in doc.paragraphs])
+
+def extract_text_from_pdf(file_stream):
+    reader = PyPDF2.PdfReader(file_stream)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text()
+    return text
 
 @app.route('/api/import/preview', methods=['POST'])
 @login_required
@@ -281,6 +301,54 @@ def csv_run_import():
     finally:
         conn.close()
 
+# --- Email Template API Endpoints ---
+@app.route('/api/upload-template', methods=['POST'])
+@login_required
+def upload_template():
+    print(f"Request headers: {request.headers}")
+    if 'file' not in request.files:
+        print("No file part in the request")
+        return jsonify({"error": "No file part in the request"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        print("No file selected")
+        return jsonify({"error": "No file selected"}), 400
+
+    filename = secure_filename(file.filename)
+    content = ""
+    image = None
+
+    try:
+        print(f"Processing file: {filename}")
+        if filename.lower().endswith('.docx'):
+            content = extract_text_from_docx(file.stream)
+        elif filename.lower().endswith('.pdf'):
+            content = extract_text_from_pdf(file.stream)
+        else:
+            print(f"Invalid file type: {filename}")
+            return jsonify({"error": "Invalid file type"}), 400
+        print("File processed successfully")
+    except Exception as e:
+        print(f"An error occurred while processing the file: {e}")
+        return jsonify({"error": f"An error occurred while processing the file: {e}"}), 500
+
+    # For now, we're not handling images. This can be added later.
+    # Save to database
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO email_templates (name, content, image) VALUES (?, ?, ?)",
+                       (filename, content, image))
+        conn.commit()
+        conn.close()
+        print("Data saved to database")
+    except Exception as e:
+        print(f"An error occurred while saving to the database: {e}")
+        return jsonify({"error": f"An error occurred while saving to the database: {e}"}), 500
+
+
+    return jsonify({"message": "File uploaded and processed successfully"}), 200
 
 # --- Generic Table Data API ---
 
