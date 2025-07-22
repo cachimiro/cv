@@ -92,6 +92,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial load of templates
     loadTemplates();
+
+    const modal = document.getElementById('edit-modal');
+    const closeButton = modal.querySelector('.close-btn');
+    const editForm = document.getElementById('edit-form');
+
+    closeButton.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    editForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        const name = document.getElementById('edit-name').value;
+        const content = document.getElementById('edit-content').value;
+
+        try {
+            const response = await fetch(`/api/email-template/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, content })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message || 'Template updated successfully!');
+                modal.style.display = 'none';
+                loadTemplates(); // Refresh the list
+            } else {
+                throw new Error(result.error || 'An unknown error occurred.');
+            }
+        } catch (error) {
+            console.error('Update error:', error);
+            alert(`Update failed: ${error.message}`);
+        }
+    });
 });
 
 // Helper function to escape HTML to prevent XSS
@@ -119,6 +163,14 @@ async function viewTemplate(id) {
         modal.querySelector('#edit-id').value = template.id;
         modal.querySelector('#edit-name').value = template.name;
         modal.querySelector('#edit-content').value = template.content;
+
+        const imageView = modal.querySelector('#view-image');
+        if (template.image) {
+            imageView.src = `data:image/png;base64,${template.image}`;
+            imageView.style.display = 'block';
+        } else {
+            imageView.style.display = 'none';
+        }
 
         modal.style.display = 'block';
     } catch (error) {

@@ -177,10 +177,19 @@ import json # For parsing the column mapping
 import docx
 import PyPDF2
 from werkzeug.utils import secure_filename
+import base64
 
 def extract_text_from_docx(file_stream):
     doc = docx.Document(file_stream)
-    return "\n".join([para.text for para in doc.paragraphs])
+    text = "\n".join([para.text for para in doc.paragraphs])
+
+    image_data = None
+    for rel in doc.part.rels.values():
+        if "image" in rel.target_ref:
+            image_data = rel.target_part.blob
+            break # For now, just get the first image
+
+    return text, image_data
 
 def extract_text_from_pdf(file_stream):
     reader = PyPDF2.PdfReader(file_stream)
@@ -307,23 +316,49 @@ def csv_run_import():
 def get_email_templates():
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, content FROM email_templates")
+    cursor.execute("SELECT id, name, content, image FROM email_templates")
     templates = cursor.fetchall()
     conn.close()
-    return jsonify([dict(row) for row in templates])
 
-@app.route('/api/email-template/<int:template_id>', methods=['GET'])
+    templates_list = []
+    for row in templates:
+        template_dict = dict(row)
+        if template_dict.get('image'):
+            template_dict['image'] = base64.b64encode(template_dict['image']).decode('utf-8')
+        templates_list.append(template_dict)
+
+    return jsonify(templates_list)
+
+@app.route('/api/email-template/<int:template_id>', methods=['GET', 'PUT'])
 @login_required
-def get_email_template(template_id):
-    conn = database.get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, content FROM email_templates WHERE id = ?", (template_id,))
-    template = cursor.fetchone()
-    conn.close()
-    if template:
-        return jsonify(dict(template))
-    else:
-        return jsonify({"error": "Template not found"}), 404
+def email_template(template_id):
+    if request.method == 'GET':
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, content, image FROM email_templates WHERE id = ?", (template_id,))
+        template = cursor.fetchone()
+        conn.close()
+        if template:
+            template_dict = dict(template)
+            if template_dict.get('image'):
+                template_dict['image'] = base64.b64encode(template_dict['image']).decode('utf-8')
+            return jsonify(template_dict)
+        else:
+            return jsonify({"error": "Template not found"}), 404
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        name = data.get('name')
+        content = data.get('content')
+
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE email_templates SET name = ?, content = ? WHERE id = ?",
+                       (name, content, template_id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Template updated successfully"})
 
 @app.route('/api/upload-template', methods=['POST'])
 @login_required
@@ -345,7 +380,7 @@ def upload_template():
     try:
         print(f"Processing file: {filename}")
         if filename.lower().endswith('.docx'):
-            content = extract_text_from_docx(file.stream)
+            content, image = extract_text_from_docx(file.stream)
         elif filename.lower().endswith('.pdf'):
             content = extract_text_from_pdf(file.stream)
         else:
