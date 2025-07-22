@@ -217,9 +217,17 @@ async function handleRunImport() {
         const response = await fetch(`${API_BASE_URL}/import/run`, { method: 'POST', body: formData });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'An unknown error occurred.');
-        alert(result.message);
-        closeMappingModal();
-        fetchTableData(targetTable);
+
+        // --- MODIFICATION START ---
+        // Instead of alerting and closing, we just refresh the data in the background.
+        // This provides a smoother user experience.
+        closeMappingModal(); // Still close the modal
+        fetchTableData(targetTable); // Refresh the data table
+
+        // Optionally, show a more subtle notification
+        showTemporaryMessage(result.message, 'success');
+        // --- MODIFICATION END ---
+
     } catch (error) {
         console.error("Error running import:", error);
         alert(`Import Failed: ${error.message}`);
@@ -343,4 +351,28 @@ function escapeHTML(str) {
     return String(str).replace(/[&<>"']/g, match => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[match]));
+}
+
+// --- UI Utility Functions ---
+function showTemporaryMessage(message, type = 'success') {
+    const messageContainer = document.createElement('div');
+    messageContainer.className = `transient-message ${type}`;
+    messageContainer.textContent = message;
+
+    document.body.appendChild(messageContainer);
+
+    // Animate in
+    setTimeout(() => {
+        messageContainer.style.opacity = '1';
+        messageContainer.style.transform = 'translateY(0)';
+    }, 10);
+
+    // Animate out and remove after a delay
+    setTimeout(() => {
+        messageContainer.style.opacity = '0';
+        messageContainer.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            document.body.removeChild(messageContainer);
+        }, 500); // Wait for animation to finish
+    }, 5000); // Message visible for 5 seconds
 }

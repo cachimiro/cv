@@ -895,3 +895,25 @@ th, td {
     background-color: #fff3cd;
     border-color: #ffeeba;
 }
+
+/* --- Transient Message Styling --- */
+.transient-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: 12px 25px;
+    border-radius: 8px;
+    background-color: #28a745; /* Green for success */
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+.transient-message.error {
+    background-color: #dc3545; /* Red for error */
+}
