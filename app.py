@@ -348,14 +348,20 @@ def email_template(template_id):
             return jsonify({"error": "Template not found"}), 404
 
     if request.method == 'PUT':
-        data = request.get_json()
-        name = data.get('name')
-        content = data.get('content')
+        name = request.form.get('name')
+        content = request.form.get('content')
 
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("UPDATE email_templates SET name = ?, content = ? WHERE id = ?",
-                       (name, content, template_id))
+
+        if 'image' in request.files:
+            image = request.files['image'].read()
+            cursor.execute("UPDATE email_templates SET name = ?, content = ?, image = ? WHERE id = ?",
+                           (name, content, image, template_id))
+        else:
+            cursor.execute("UPDATE email_templates SET name = ?, content = ? WHERE id = ?",
+                           (name, content, template_id))
+
         conn.commit()
         conn.close()
 

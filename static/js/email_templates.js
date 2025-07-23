@@ -112,14 +112,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = document.getElementById('edit-id').value;
         const name = document.getElementById('edit-name').value;
         const content = document.getElementById('edit-content').value;
+        const imageInput = document.getElementById('replace-image-input');
+        const imageFile = imageInput.files[0];
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('content', content);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
 
         try {
             const response = await fetch(`/api/email-template/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, content })
+                body: formData
             });
 
             const result = await response.json();
@@ -134,6 +140,34 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Update error:', error);
             alert(`Update failed: ${error.message}`);
+        }
+    });
+
+    const previewButton = document.getElementById('preview-btn');
+    previewButton.addEventListener('click', function() {
+        const htmlContent = document.getElementById('html-content-iframe').srcdoc;
+        const previewWindow = window.open();
+        previewWindow.document.write(htmlContent);
+        previewWindow.document.close();
+    });
+
+    const replaceImageButton = document.getElementById('replace-image-btn');
+    const replaceImageInput = document.getElementById('replace-image-input');
+    const viewImage = document.getElementById('view-image');
+
+    replaceImageButton.addEventListener('click', function() {
+        replaceImageInput.click();
+    });
+
+    replaceImageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                viewImage.src = e.target.result;
+                viewImage.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
         }
     });
 });
