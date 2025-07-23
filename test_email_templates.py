@@ -39,7 +39,8 @@ class EmailTemplatesTestCase(unittest.TestCase):
 
         with open('test.docx', 'rb') as f:
             data = {
-                'file': (f, 'test.docx')
+                'file': (f, 'test.docx'),
+                'template_id': 1
             }
             response = self.app.post('/api/upload-template', content_type='multipart/form-data', data=data)
 
@@ -68,7 +69,8 @@ class EmailTemplatesTestCase(unittest.TestCase):
 
         with open('test.pdf', 'rb') as f:
             data = {
-                'file': (f, 'test.pdf')
+                'file': (f, 'test.pdf'),
+                'template_id': 1
             }
             response = self.app.post('/api/upload-template', content_type='multipart/form-data', data=data)
 

@@ -369,17 +369,32 @@ def upload_template():
         return jsonify({"error": "No file part in the request"}), 400
 
     file = request.files['file']
+    template_id = request.form.get('template_id')
+
     if file.filename == '':
         return jsonify({"error": "No file selected"}), 400
 
-    filename = secure_filename(file.filename)
-    image_data = file.read()
-    image_base64 = base64.b64encode(image_data).decode('utf-8')
+    if not template_id:
+        return jsonify({"error": "No template ID provided"}), 400
 
-    return jsonify({
-        "message": "Image uploaded successfully",
-        "image_data": image_base64
-    })
+    image_data = file.read()
+
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE email_templates SET image = ? WHERE id = ?", (image_data, template_id))
+        conn.commit()
+        conn.close()
+
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+        return jsonify({
+            "message": "Image uploaded successfully",
+            "image_data": image_base64
+        })
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred while saving the image: {e}"}), 500
 
 # --- Generic Table Data API ---
 
