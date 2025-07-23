@@ -99,10 +99,18 @@ def create_tables():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             content TEXT NOT NULL,
-            image BLOB,
-            html_content TEXT
+            image BLOB
         )
     ''')
+
+    # Add html_content column if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE email_templates ADD COLUMN html_content TEXT")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
 
     conn.commit()
     conn.close()
