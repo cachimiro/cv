@@ -362,6 +362,23 @@ def email_template(template_id):
 
         return jsonify({"message": "Template updated successfully"})
 
+@app.route('/api/email-templates', methods=['POST'])
+@login_required
+def create_email_template():
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO email_templates (name, content, html_content) VALUES (?, ?, ?)",
+                       ('New Template', '', ''))
+        conn.commit()
+        new_template_id = cursor.lastrowid
+        conn.close()
+
+        return jsonify({"id": new_template_id, "name": "New Template", "html_content": ""}), 201
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred while creating the template: {e}"}), 500
+
 @app.route('/api/upload-template', methods=['POST'])
 @login_required
 def upload_template():
