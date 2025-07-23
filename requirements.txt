@@ -4,3 +4,4 @@ Flask-Login
 Werkzeug
 python-docx
 PyPDF2
+mammoth

@@ -99,7 +99,8 @@ def create_tables():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             content TEXT NOT NULL,
-            image BLOB
+            image BLOB,
+            html_content TEXT
         )
     ''')
 

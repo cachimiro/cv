@@ -23,9 +23,7 @@ class EmailTemplatesTestCase(unittest.TestCase):
     def test_upload_docx_invalid(self):
         # Create a test user
         from user import User
-        user = User(username='testuser', is_admin=True)
-        user.set_password('password')
-        user.save()
+        User(username='testuser', is_admin=True).set_password('password').save()
 
         # Log in the user
         self.app.post('/login', data=dict(
@@ -53,9 +51,7 @@ class EmailTemplatesTestCase(unittest.TestCase):
     def test_upload_pdf_invalid(self):
         # Create a test user
         from user import User
-        user = User(username='testuser', is_admin=True)
-        user.set_password('password')
-        user.save()
+        User(username='testuser', is_admin=True).set_password('password').save()
 
         # Log in the user
         self.app.post('/login', data=dict(

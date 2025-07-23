@@ -164,6 +164,9 @@ async function viewTemplate(id) {
         modal.querySelector('#edit-name').value = template.name;
         modal.querySelector('#edit-content').value = template.content;
 
+        const iframe = document.getElementById('html-content-iframe');
+        iframe.srcdoc = template.html_content;
+
         const imageView = modal.querySelector('#view-image');
         if (template.image) {
             imageView.src = `data:image/png;base64,${template.image}`;

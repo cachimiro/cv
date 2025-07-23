@@ -178,6 +178,7 @@ import docx
 import PyPDF2
 from werkzeug.utils import secure_filename
 import base64
+import mammoth
 
 def extract_text_from_docx(file_stream):
     doc = docx.Document(file_stream)
@@ -316,7 +317,7 @@ def csv_run_import():
 def get_email_templates():
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, content, image FROM email_templates")
+    cursor.execute("SELECT id, name, content, image, html_content FROM email_templates")
     templates = cursor.fetchall()
     conn.close()
 
@@ -335,7 +336,7 @@ def email_template(template_id):
     if request.method == 'GET':
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, content, image FROM email_templates WHERE id = ?", (template_id,))
+        cursor.execute("SELECT id, name, content, image, html_content FROM email_templates WHERE id = ?", (template_id,))
         template = cursor.fetchone()
         conn.close()
         if template:
@@ -381,8 +382,11 @@ def upload_template():
         print(f"Processing file: {filename}")
         if filename.lower().endswith('.docx'):
             content, image = extract_text_from_docx(file.stream)
+            result = mammoth.convert_to_html(file.stream)
+            html_content = result.value
         elif filename.lower().endswith('.pdf'):
             content = extract_text_from_pdf(file.stream)
+            html_content = "" # PDF to HTML is more complex, skipping for now
         else:
             print(f"Invalid file type: {filename}")
             return jsonify({"error": "Invalid file type"}), 400
@@ -396,8 +400,8 @@ def upload_template():
     try:
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO email_templates (name, content, image) VALUES (?, ?, ?)",
-                       (filename, content, image))
+        cursor.execute("INSERT INTO email_templates (name, content, image, html_content) VALUES (?, ?, ?, ?)",
+                       (filename, content, image, html_content))
         conn.commit()
         conn.close()
         print("Data saved to database")
