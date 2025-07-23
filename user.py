@@ -19,6 +19,7 @@ class User(UserMixin):
     def set_password(self, password):
         """Hashes and sets the user's password."""
         self.password_hash = generate_password_hash(password)
+        return self
 
     def check_password(self, password):
         """Checks if the provided password matches the hashed password."""

@@ -346,21 +346,16 @@ def email_template(template_id):
             return jsonify(template_dict)
         else:
             return jsonify({"error": "Template not found"}), 404
-
     if request.method == 'PUT':
-        name = request.form.get('name')
-        content = request.form.get('content')
+        data = request.get_json()
+        name = data.get('name')
+        html_content = data.get('html_content')
 
         conn = database.get_db_connection()
         cursor = conn.cursor()
 
-        if 'image' in request.files:
-            image = request.files['image'].read()
-            cursor.execute("UPDATE email_templates SET name = ?, content = ?, image = ? WHERE id = ?",
-                           (name, content, image, template_id))
-        else:
-            cursor.execute("UPDATE email_templates SET name = ?, content = ? WHERE id = ?",
-                           (name, content, template_id))
+        cursor.execute("UPDATE email_templates SET name = ?, html_content = ? WHERE id = ?",
+                       (name, html_content, template_id))
 
         conn.commit()
         conn.close()
@@ -370,53 +365,21 @@ def email_template(template_id):
 @app.route('/api/upload-template', methods=['POST'])
 @login_required
 def upload_template():
-    print(f"Request headers: {request.headers}")
     if 'file' not in request.files:
-        print("No file part in the request")
         return jsonify({"error": "No file part in the request"}), 400
 
     file = request.files['file']
     if file.filename == '':
-        print("No file selected")
         return jsonify({"error": "No file selected"}), 400
 
     filename = secure_filename(file.filename)
-    content = ""
-    image = None
+    image_data = file.read()
+    image_base64 = base64.b64encode(image_data).decode('utf-8')
 
-    try:
-        print(f"Processing file: {filename}")
-        if filename.lower().endswith('.docx'):
-            content, image = extract_text_from_docx(file.stream)
-            result = mammoth.convert_to_html(file.stream)
-            html_content = result.value
-        elif filename.lower().endswith('.pdf'):
-            content = extract_text_from_pdf(file.stream)
-            html_content = "" # PDF to HTML is more complex, skipping for now
-        else:
-            print(f"Invalid file type: {filename}")
-            return jsonify({"error": "Invalid file type"}), 400
-        print("File processed successfully")
-    except Exception as e:
-        print(f"An error occurred while processing the file: {e}")
-        return jsonify({"error": f"An error occurred while processing the file: {e}"}), 500
-
-    # For now, we're not handling images. This can be added later.
-    # Save to database
-    try:
-        conn = database.get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO email_templates (name, content, image, html_content) VALUES (?, ?, ?, ?)",
-                       (filename, content, image, html_content))
-        conn.commit()
-        conn.close()
-        print("Data saved to database")
-    except Exception as e:
-        print(f"An error occurred while saving to the database: {e}")
-        return jsonify({"error": f"An error occurred while saving to the database: {e}"}), 500
-
-
-    return jsonify({"message": "File uploaded and processed successfully"}), 200
+    return jsonify({
+        "message": "Image uploaded successfully",
+        "image_data": image_base64
+    })
 
 # --- Generic Table Data API ---
 

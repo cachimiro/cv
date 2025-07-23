@@ -46,7 +46,7 @@ class EmailTemplatesTestCase(unittest.TestCase):
         os.remove('test.docx')
         self.assertEqual(response.status_code, 200)
         json_data = response.get_json()
-        self.assertEqual(json_data['message'], 'File uploaded and processed successfully')
+        self.assertEqual(json_data['message'], 'Image uploaded successfully')
 
     def test_upload_pdf_invalid(self):
         # Create a test user
@@ -75,7 +75,7 @@ class EmailTemplatesTestCase(unittest.TestCase):
         os.remove('test.pdf')
         self.assertEqual(response.status_code, 200)
         json_data = response.get_json()
-        self.assertEqual(json_data['message'], 'File uploaded and processed successfully')
+        self.assertEqual(json_data['message'], 'Image uploaded successfully')
 
 if __name__ == '__main__':
     unittest.main()
