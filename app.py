@@ -365,16 +365,27 @@ def email_template(template_id):
 @app.route('/api/email-templates', methods=['POST'])
 @login_required
 def create_email_template():
+    if 'file' in request.files:
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+
+        image_data = file.read()
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
+    else:
+        image_data = None
+        image_base64 = None
+
     try:
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO email_templates (name, content, html_content) VALUES (?, ?, ?)",
-                       ('New Template', '', ''))
+        cursor.execute("INSERT INTO email_templates (name, content, html_content, image) VALUES (?, ?, ?, ?)",
+                       ('New Template', '', '', image_data))
         conn.commit()
         new_template_id = cursor.lastrowid
         conn.close()
 
-        return jsonify({"id": new_template_id, "name": "New Template", "html_content": ""}), 201
+        return jsonify({"id": new_template_id, "name": "New Template", "html_content": "", "image": image_base64}), 201
 
     except Exception as e:
         return jsonify({"error": f"An error occurred while creating the template: {e}"}), 500
