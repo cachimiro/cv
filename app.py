@@ -350,17 +350,18 @@ def email_template(template_id):
     if request.method == 'PUT':
         name = request.form.get('name')
         content = request.form.get('content')
+        html_content = request.form.get('html_content')
 
         conn = database.get_db_connection()
         cursor = conn.cursor()
 
         if 'image' in request.files:
             image = request.files['image'].read()
-            cursor.execute("UPDATE email_templates SET name = ?, content = ?, image = ? WHERE id = ?",
-                           (name, content, image, template_id))
+            cursor.execute("UPDATE email_templates SET name = ?, content = ?, image = ?, html_content = ? WHERE id = ?",
+                           (name, content, image, html_content, template_id))
         else:
-            cursor.execute("UPDATE email_templates SET name = ?, content = ? WHERE id = ?",
-                           (name, content, template_id))
+            cursor.execute("UPDATE email_templates SET name = ?, content = ?, html_content = ? WHERE id = ?",
+                           (name, content, html_content, template_id))
 
         conn.commit()
         conn.close()

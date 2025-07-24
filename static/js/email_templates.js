@@ -111,13 +111,15 @@ document.addEventListener('DOMContentLoaded', function() {
         event.preventDefault();
         const id = document.getElementById('edit-id').value;
         const name = document.getElementById('edit-name').value;
-        const content = document.getElementById('edit-content').value;
+        const iframe = document.getElementById('html-content-iframe');
+        const content = iframe.contentDocument.body.innerHTML;
         const imageInput = document.getElementById('replace-image-input');
         const imageFile = imageInput.files[0];
 
         const formData = new FormData();
         formData.append('name', name);
         formData.append('content', content);
+        formData.append('html_content', content);
         if (imageFile) {
             formData.append('image', imageFile);
         }
@@ -166,10 +168,25 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.onload = function(e) {
                 viewImage.src = e.target.result;
                 viewImage.style.display = 'block';
+
+                const iframe = document.getElementById('html-content-iframe');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const img = iframeDoc.querySelector('img');
+                if (img) {
+                    img.src = e.target.result;
+                }
             }
             reader.readAsDataURL(file);
         }
     });
+
+    function resizeIframe() {
+        const iframe = document.getElementById('html-content-iframe');
+        const container = document.getElementById('html-content-container');
+        iframe.style.height = container.clientHeight + 'px';
+    }
+
+    window.addEventListener('resize', resizeIframe);
 });
 
 // Helper function to escape HTML to prevent XSS
@@ -200,6 +217,9 @@ async function viewTemplate(id) {
 
         const iframe = document.getElementById('html-content-iframe');
         iframe.srcdoc = template.html_content;
+        iframe.onload = function() {
+            iframe.contentDocument.designMode = 'on';
+        };
 
         const imageView = modal.querySelector('#view-image');
         if (template.image) {
