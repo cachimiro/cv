@@ -386,14 +386,28 @@ def upload_template():
     image = None
 
     try:
+        # Read the entire file into memory once to avoid stream consumption issues
+        file_content = file.read()
+        # It's good practice to reset the original stream's pointer, though we'll use the in-memory copy
+        file.seek(0)
+
         print(f"Processing file: {filename}")
         if filename.lower().endswith('.docx'):
-            content, image = extract_text_from_docx(file.stream)
-            result = mammoth.convert_to_html(file.stream)
+            # Use an in-memory binary stream (io.BytesIO) that can be re-read
+            in_memory_stream = io.BytesIO(file_content)
+            content, image = extract_text_from_docx(in_memory_stream)
+
+            # Reset the stream's pointer to the beginning so it can be read again
+            in_memory_stream.seek(0)
+
+            result = mammoth.convert_to_html(in_memory_stream)
             html_content = result.value
         elif filename.lower().endswith('.pdf'):
-            content = extract_text_from_pdf(file.stream)
-            html_content = "" # PDF to HTML is more complex, skipping for now
+            in_memory_stream = io.BytesIO(file_content)
+            content = extract_text_from_pdf(in_memory_stream)
+            # Basic HTML conversion: wrap content in <p> tags and remove null bytes
+            sanitized_content = content.replace('\x00', '')
+            html_content = f"<p>{sanitized_content}</p>"
         else:
             print(f"Invalid file type: {filename}")
             return jsonify({"error": "Invalid file type"}), 400
