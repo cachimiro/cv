@@ -216,8 +216,16 @@ async function viewTemplate(id) {
         modal.querySelector('#edit-content').value = template.content;
 
         const iframe = document.getElementById('html-content-iframe');
-        iframe.srcdoc = template.html_content;
+        const responsiveStyle = `
+            <style>
+                body { font-family: sans-serif; word-wrap: break-word; }
+                img { max-width: 100%; height: auto; }
+            </style>
+        `;
+        iframe.srcdoc = responsiveStyle + template.html_content;
         iframe.onload = function() {
+            // Make the iframe content editable
+            iframe.contentDocument.body.contentEditable = true;
             iframe.contentDocument.designMode = 'on';
         };
 
