@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="action-buttons">
                         <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})">View</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">Delete</button>
+                        <a href="/outreach/${template.id}" class="btn btn-primary btn-sm">Outreach</a>
                     </td>
                 `;
             });

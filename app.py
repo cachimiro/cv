@@ -60,6 +60,12 @@ def email_templates():
     """Serves the email templates page."""
     return render_template('email_templates.html')
 
+@app.route('/outreach/<int:template_id>')
+@login_required
+def outreach_page(template_id):
+    """Serves the outreach page for a specific template."""
+    return render_template('outreach.html', template_id=template_id)
+
 @app.route('/')
 @login_required
 def index():

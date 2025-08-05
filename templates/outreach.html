@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}Outreach - Sway PR Data{% endblock %}
+{% block page_title %}Outreach{% endblock %}
+
+{% block content %}
+<div class="outreach-container">
+    <h2>Select Staff Member for Outreach</h2>
+    <p>Select which staff member you would like to use for this outreach campaign.</p>
+
+    <div id="staff-list-container">
+        <!-- Staff list will be loaded here by JavaScript -->
+        <p>Loading staff members...</p>
+    </div>
+
+    <div id="add-staff-container" style="display: none;">
+        <hr>
+        <h3>No Staff Found</h3>
+        <p>There are no staff members registered. Please add one to continue.</p>
+        <form id="add-staff-form">
+            <div class="form-group">
+                <label for="staff-name">Staff Name</label>
+                <input type="text" id="staff-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="staff-email">Staff Email</label>
+                <input type="email" id="staff-email" class="form-control" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add Staff Member</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/outreach.js') }}"></script>
+{% endblock %}
