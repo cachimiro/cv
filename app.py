@@ -601,6 +601,51 @@ def delete_staff(staff_id):
 
 # --- Webhook API Endpoints ---
 
+@app.route('/api/outreach/send', methods=['POST'])
+@login_required
+def send_outreach():
+    data = request.get_json()
+    template_id = data.get('template_id')
+    staff_member = data.get('staff_member')
+    outlet_names = data.get('outlet_names')
+
+    if not all([template_id, staff_member, outlet_names]):
+        return jsonify({"error": "Missing required data"}), 400
+
+    conn = database.get_db_connection()
+
+    # Fetch email template
+    template = conn.execute("SELECT * FROM email_templates WHERE id = ?", (template_id,)).fetchone()
+    if not template:
+        conn.close()
+        return jsonify({"error": "Template not found"}), 404
+
+    # Fetch reporters from selected outlets
+    placeholders = ', '.join(['?'] * len(outlet_names))
+    journalists = conn.execute(f"SELECT * FROM journalists WHERE outletName IN ({placeholders})", outlet_names).fetchall()
+    media_titles = conn.execute(f"SELECT * FROM media_titles WHERE outletName IN ({placeholders})", outlet_names).fetchall()
+
+    conn.close()
+
+    # Prepare the payload
+    # Note: The template content might be large. Consider if you need all of it.
+    # The image blob is converted to base64 if it exists.
+    template_dict = dict(template)
+    if template_dict.get('image'):
+        template_dict['image'] = base64.b64encode(template_dict['image']).decode('utf-8')
+
+
+    payload = {
+        "email_template": template_dict,
+        "staff_member": staff_member,
+        "reporters": [dict(j) for j in journalists] + [dict(m) for m in media_titles]
+    }
+
+    if database.send_to_webhook(payload):
+        return jsonify({"message": "Outreach data sent successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to send outreach data to one or more webhooks"}), 500
+
 @app.route('/api/webhook/send_all', methods=['POST'])
 @login_required
 def send_all_to_webhook():

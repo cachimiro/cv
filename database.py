@@ -230,26 +230,25 @@ if __name__ == '__main__':
 import requests
 import json
 
-# The new webhook URL for sending journalist/media title data
-MAKE_WEBHOOK_URL = "https://hook.eu2.make.com/k4lkx5fhwvqn2guadjdqredju2opac1r"
+# Webhook URLs for sending outreach data
+WEBHOOK_URLS = [
+    "https://n8n-hosting-u2i6.onrender.com/webhook-test/35b675e5-7215-4d73-9331-3f1f4ec05e8b",
+    "https://n8n-hosting-u2i6.onrender.com/webhook/35b675e5-7215-4d73-9331-3f1f4ec05e8b"
+]
 
 def send_to_webhook(data_payload):
-    """Sends the given data payload to the Make.com webhook."""
-    try:
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(MAKE_WEBHOOK_URL, data=json.dumps(data_payload), headers=headers, timeout=10)
-        response.raise_for_status() # Raises an HTTPError for bad responses (4XX or 5XX)
-        print(f"Data successfully sent to webhook. Status: {response.status_code}")
-        return True
-    except requests.exceptions.Timeout:
-        print(f"Error sending data to webhook: Request timed out.")
-        return False
-    except requests.exceptions.HTTPError as e:
-        print(f"Error sending data to webhook: HTTP Error: {e.response.status_code} - {e.response.text}")
-        return False
-    except requests.exceptions.RequestException as e:
-        print(f"Error sending data to webhook: {e}")
-        return False
+    """Sends the given data payload to all configured webhooks."""
+    success = True
+    for url in WEBHOOK_URLS:
+        try:
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(url, data=json.dumps(data_payload), headers=headers, timeout=10)
+            response.raise_for_status() # Raises an HTTPError for bad responses (4XX or 5XX)
+            print(f"Data successfully sent to webhook: {url}. Status: {response.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending data to webhook {url}: {e}")
+            success = False
+    return success
 
 def get_company_by_id(company_id):
     """Retrieves a single company by its ID."""
