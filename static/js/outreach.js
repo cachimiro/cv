@@ -48,9 +48,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function loadOutlets() {
+    const outletSearchInput = document.getElementById('outlet-search');
+
+    outletSearchInput.addEventListener('input', function() {
+        loadOutlets(this.value);
+    });
+
+    async function loadOutlets(query = '') {
         try {
-            const response = await fetch('/api/outlets/all');
+            const url = query ? `/api/outlets/search?q=${encodeURIComponent(query)}` : '/api/outlets/all';
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

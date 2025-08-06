@@ -5,3 +5,5 @@ Werkzeug
 python-docx
 PyPDF2
 mammoth
+fuzzywuzzy
+python-Levenshtein

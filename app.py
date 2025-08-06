@@ -185,6 +185,7 @@ import PyPDF2
 from werkzeug.utils import secure_filename
 import base64
 import mammoth
+from fuzzywuzzy import process
 
 def extract_text_from_docx(file_stream):
     doc = docx.Document(file_stream)
@@ -539,6 +540,29 @@ def get_all_outlet_names():
     except Exception as e:
         print(f"Error fetching all outlet names: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/api/outlets/search')
+@login_required
+def search_outlets():
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify([])
+
+    conn = database.get_db_connection()
+    outlets = conn.execute("""
+        SELECT DISTINCT outletName FROM journalists WHERE outletName IS NOT NULL AND outletName != ''
+        UNION
+        SELECT DISTINCT outletName FROM media_titles WHERE outletName IS NOT NULL AND outletName != ''
+    """).fetchall()
+    conn.close()
+
+    outlet_names = [row['outletName'] for row in outlets]
+
+    # Use fuzzywuzzy to find the best matches
+    matches = process.extract(query, outlet_names, limit=10)
+
+    # Return a list of the matching outlet names
+    return jsonify([match[0] for match in matches])
 
 @app.route('/api/staff', methods=['GET'])
 @login_required
