@@ -199,9 +199,15 @@ async function buildMappingUI(csvHeaders) {
 }
 
 async function handleRunImport() {
+    const uploadName = prompt("Please enter a name for this upload batch:", uploadedFile.name);
+    if (!uploadName) {
+        showFlashMessage("Upload cancelled: A name is required.", "warning");
+        return;
+    }
+
     const runImportBtn = document.getElementById('runImportBtn');
     const targetTableSelect = document.getElementById('targetTableSelect');
-    if (!uploadedFile) { alert("An error occurred. The uploaded file is missing."); return; }
+    if (!uploadedFile) { showFlashMessage("An error occurred. The uploaded file is missing.", "danger"); return; }
     if (runImportBtn) { runImportBtn.disabled = true; runImportBtn.textContent = 'Importing...'; }
     const targetTable = targetTableSelect.value;
     const mappingSelects = document.querySelectorAll('#mapping-table-container .mapping-select');
@@ -210,7 +216,7 @@ async function handleRunImport() {
         if (select.value) { columnMapping[select.dataset.csvHeader] = select.value; }
     });
     if (Object.keys(columnMapping).length === 0) {
-        alert("Please map at least one column.");
+        showFlashMessage("Please map at least one column.", "warning");
         if (runImportBtn) { runImportBtn.disabled = false; runImportBtn.textContent = 'Run Import'; }
         return;
     }
@@ -218,16 +224,17 @@ async function handleRunImport() {
     formData.append('file', uploadedFile);
     formData.append('target_table', targetTable);
     formData.append('column_mapping', JSON.stringify(columnMapping));
+    formData.append('upload_name', uploadName);
     try {
         const response = await fetch(`${API_BASE_URL}/import/run`, { method: 'POST', body: formData });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'An unknown error occurred.');
-        alert(result.message);
+        showFlashMessage(result.message, 'success');
         closeMappingModal();
-        fetchTableData(targetTable);
+        loadUploads();
     } catch (error) {
         console.error("Error running import:", error);
-        alert(`Import Failed: ${error.message}`);
+        showFlashMessage(`Import Failed: ${error.message}`, 'danger');
     } finally {
         if (runImportBtn) { runImportBtn.disabled = false; runImportBtn.textContent = 'Run Import'; }
     }

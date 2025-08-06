@@ -488,7 +488,7 @@ def get_table_data(table_name):
     Fetches paginated data from a specified table.
     For now, fetches all data. Pagination can be added later.
     """
-    if table_name not in ['journalists', 'media_titles', 'companies']: # Allow companies for now
+    if table_name not in ['journalists', 'media_titles', 'companies', 'uploads']:
         return jsonify({"error": "Invalid table name specified"}), 400
 
     try:
