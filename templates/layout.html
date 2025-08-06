@@ -95,6 +95,7 @@
 
         <!-- Main Canvas -->
         <main class="main-canvas">
+            <div id="dynamic-flash-container"></div>
             {% block page_header %}{% endblock %} {# For greeting banner, section heading #}
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -119,6 +120,7 @@
         // current-year script removed as footer is removed/re-imagined
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/flash.js') }}"></script>
     {% block extra_js %}{% endblock %}
     {% block inline_js %}{% endblock %}
 </body>

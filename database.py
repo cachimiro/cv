@@ -238,17 +238,17 @@ WEBHOOK_URLS = [
 
 def send_to_webhook(data_payload):
     """Sends the given data payload to all configured webhooks."""
-    success = True
+    success_count = 0
     for url in WEBHOOK_URLS:
         try:
             headers = {'Content-Type': 'application/json'}
             response = requests.post(url, data=json.dumps(data_payload), headers=headers, timeout=10)
             response.raise_for_status() # Raises an HTTPError for bad responses (4XX or 5XX)
             print(f"Data successfully sent to webhook: {url}. Status: {response.status_code}")
+            success_count += 1
         except requests.exceptions.RequestException as e:
             print(f"Error sending data to webhook {url}: {e}")
-            success = False
-    return success
+    return success_count
 
 def get_company_by_id(company_id):
     """Retrieves a single company by its ID."""

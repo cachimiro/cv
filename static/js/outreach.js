@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (response.ok) {
-                alert('Staff member added successfully!');
+                showFlashMessage('Staff member added successfully!', 'success');
                 addStaffForm.reset();
                 loadStaff(); // Refresh the list
             } else {
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error adding staff:', error);
-            alert(`Failed to add staff member: ${error.message}`);
+            showFlashMessage(`Failed to add staff member: ${error.message}`, 'danger');
         }
     });
 
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const templateId = window.location.pathname.split('/').pop();
 
         if (!selectedStaff || selectedOutlets.length === 0) {
-            alert('Please select a staff member and at least one outlet.');
+            showFlashMessage('Please select a staff member and at least one outlet.', 'warning');
             return;
         }
 
@@ -136,13 +136,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (response.ok) {
-                alert('Outreach data sent successfully!');
+                showFlashMessage('Outreach data sent successfully!', 'success');
             } else {
                 throw new Error(result.error || 'An unknown error occurred.');
             }
         } catch (error) {
             console.error('Error sending outreach data:', error);
-            alert(`Failed to send outreach data: ${error.message}`);
+            showFlashMessage(`Failed to send outreach data: ${error.message}`, 'danger');
         }
     });
 

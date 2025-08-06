@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitButton = uploadForm.querySelector('button[type="submit"]');
 
             if (!fileInput.files || fileInput.files.length === 0) {
-                alert('Please select a file to upload.');
+                showFlashMessage('Please select a file to upload.', 'warning');
                 return;
             }
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert(result.message || 'Upload successful!');
+                    showFlashMessage(result.message || 'Upload successful!', 'success');
                     uploadForm.reset(); // Clear the form
                     loadTemplates(); // Refresh the list
                 } else {
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Upload error:', error);
-                alert(`Upload failed: ${error.message}`);
+                showFlashMessage(`Upload failed: ${error.message}`, 'danger');
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = 'Upload';
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (response.ok) {
-                alert(result.message || 'Template updated successfully!');
+                showFlashMessage(result.message || 'Template updated successfully!', 'success');
                 modal.style.display = 'none';
                 loadTemplates(); // Refresh the list
             } else {
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Update error:', error);
-            alert(`Update failed: ${error.message}`);
+            showFlashMessage(`Update failed: ${error.message}`, 'danger');
         }
     });
 
@@ -241,7 +241,7 @@ async function viewTemplate(id) {
         modal.style.display = 'block';
     } catch (error) {
         console.error('Error fetching template:', error);
-        alert('Could not fetch template details.');
+        showFlashMessage('Could not fetch template details.', 'danger');
     }
 }
 

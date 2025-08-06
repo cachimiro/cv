@@ -641,10 +641,11 @@ def send_outreach():
         "reporters": [dict(j) for j in journalists] + [dict(m) for m in media_titles]
     }
 
-    if database.send_to_webhook(payload):
-        return jsonify({"message": "Outreach data sent successfully"}), 200
+    success_count = database.send_to_webhook(payload)
+    if success_count > 0:
+        return jsonify({"message": f"Outreach data sent to {success_count} webhook(s) successfully"}), 200
     else:
-        return jsonify({"error": "Failed to send outreach data to one or more webhooks"}), 500
+        return jsonify({"error": "Failed to send outreach data to any webhooks"}), 500
 
 @app.route('/api/webhook/send_all', methods=['POST'])
 @login_required
