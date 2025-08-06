@@ -59,6 +59,16 @@ function initApp() {
 
     // --- Initial Data Load ---
     fetchTableData('journalists');
+
+    const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+    const leftSidebar = document.querySelector('.left-sidebar');
+
+    if (mobileNavToggle && leftSidebar) {
+        mobileNavToggle.addEventListener('click', function() {
+            leftSidebar.classList.toggle('is-open');
+        });
+        console.log("Attached mobile navigation toggle listener.");
+    }
 }
 
 

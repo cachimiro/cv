@@ -650,10 +650,38 @@ th, td {
 }
 
 
+.mobile-nav-toggle-btn {
+    display: none; /* Hidden by default */
+}
+
 /* Responsive adjustments */
 @media (max-width: 992px) { /* A breakpoint between tablet and desktop */
     .staff-management-container {
         grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    }
+
+    .left-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+
+    .left-sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    .main-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .mobile-nav-toggle-btn {
+        display: block;
+        background: none;
+        border: none;
+        color: #333;
+        font-size: 1.5rem;
+        cursor: pointer;
     }
 }
 @media (max-width: 768px) {
