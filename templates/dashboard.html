@@ -1,40 +1,30 @@
 {% extends "layout.html" %}
 
-{% block title %}Dashboard - Sway PR Data{% endblock %}
-{% block page_title %}Dashboard Overview{% endblock %}
+{% block title %}Journalists - Sway PR Data{% endblock %}
+{% block page_title %}Journalists{% endblock %}
 
 {% block page_header %}
     <div class="greeting-banner">
-        <h1>Welcome back, {{ current_user.username if current_user.is_authenticated else "Guest" }}! 👋</h1>
-    </div>
-    <div class="section-heading-container">
-        <h2 class="section-heading">Data Table: <span id="current-table-name">Journalists</span></h2>
+        <h1>Journalists</h1>
+        <p>Your central hub for managing journalist data.</p>
     </div>
 {% endblock %}
 
 {% block content %}
 <div class="controls-row">
     <div class="search-control">
-        <input type="search" id="searchCompaniesInput" placeholder="Search entries..." class="form-control">
+        <input type="search" id="upload-search" placeholder="Search uploads..." class="form-control">
     </div>
     <div class="action-control">
-        <button id="createOutreachBtn" class="btn btn-secondary" style="position: relative; z-index: 9999;">Create Outreach</button>
-        <button id="uploadCsvBtn" class="btn btn-primary btn-add-new" style="position: relative; z-index: 9999;">
-            <span class="btn-icon">+</span> Upload New Data
+        <button id="uploadCsvBtn" class="btn btn-primary btn-add-new">
+            <span class="btn-icon">+</span> Upload New Batch
         </button>
         <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
     </div>
 </div>
 
-<div class="filter-chips-container">
-    <button class="filter-chip active">All</button>
-    <button class="filter-chip">Technology</button>
-    <button class="filter-chip">Finance</button>
-    <button class="filter-chip">Healthcare</button>
-</div>
-
-<div id="companiesList">
-    <p>Loading data...</p>
+<div id="uploadsList">
+    <p>Loading uploads...</p>
 </div>
 
 <!-- This is the ADD/EDIT MODAL for the OLD 'companies' table. It is no longer used but kept for reference. -->

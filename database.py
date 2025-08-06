@@ -40,11 +40,21 @@ def create_tables():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)')
 
     # --- New tables for Sway PR Data ---
+    # Uploads Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS uploads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     print("DEBUG: Attempting to create 'journalists' table...")
     # Journalists Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS journalists (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            upload_id INTEGER,
             name TEXT, nameSuffix TEXT, outletName TEXT, phone TEXT, ModeOfAddress TEXT,
             Honorific TEXT, JobTitle TEXT, MediaType TEXT, Email TEXT, AddressLine1 TEXT,
             AddressLine2 TEXT, City TEXT, County TEXT, State TEXT, PostalCode TEXT,
@@ -56,7 +66,8 @@ def create_tables():
             Languages TEXT, Unsubscribed TEXT, Focus TEXT,
             -- Note: nameSuffix, outletName, phone were duplicated in prompt, using camelCase version
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (upload_id) REFERENCES uploads (id)
             -- Consider adding UNIQUE constraint on Email if it should be unique
         )
     ''')
@@ -67,6 +78,7 @@ def create_tables():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS media_titles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            upload_id INTEGER,
             name TEXT, nameSuffix TEXT, outletName TEXT, phone TEXT, ModeOfAddress TEXT,
             Honorific TEXT, JobTitle TEXT, MediaType TEXT, Email TEXT, AddressLine1 TEXT,
             AddressLine2 TEXT, City TEXT, County TEXT, State TEXT, PostalCode TEXT,
@@ -77,7 +89,8 @@ def create_tables():
             ShadowCounty TEXT, ShadowPostalCode TEXT, ShadowCountry TEXT,
             Languages TEXT, Unsubscribed TEXT, Focus TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (upload_id) REFERENCES uploads (id)
         )
     ''')
     print("DEBUG: 'media_titles' table creation command executed.")

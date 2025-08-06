@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title %}Upload Data - Sway PR Data{% endblock %}
+{% block page_title %}Upload Data{% endblock %}
+
+{% block content %}
+<section class="data-management-section">
+    <div class="page-header">
+        <h2>Data for Upload: <span id="upload-name"></span></h2>
+    </div>
+    <div id="upload-data-container" class="companies-table-container">
+        <!-- Upload data will be loaded here by JavaScript -->
+        <p>Loading data...</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/upload_data.js') }}"></script>
+{% endblock %}

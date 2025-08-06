@@ -58,7 +58,7 @@ function initApp() {
     }
 
     // --- Initial Data Load ---
-    fetchTableData('journalists');
+    loadUploads();
 
     const mobileNavToggle = document.getElementById('mobile-nav-toggle');
     const leftSidebar = document.querySelector('.left-sidebar');
@@ -74,50 +74,45 @@ function initApp() {
 
 // --- Core Functions ---
 
-async function fetchTableData(tableName = 'journalists') {
-    const companiesListDiv = document.getElementById('companiesList');
-    if (!companiesListDiv) return;
+async function loadUploads(query = '') {
+    const uploadsListDiv = document.getElementById('uploadsList');
+    if (!uploadsListDiv) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/table/${tableName}`);
+        const url = query ? `${API_BASE_URL}/search?q=${encodeURIComponent(query)}` : `${API_BASE_URL}/table/uploads`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        renderTableData(data, tableName);
+        const uploads = await response.json();
+        renderUploadsList(uploads);
     } catch (error) {
-        console.error(`Error fetching data for ${tableName}:`, error);
-        companiesListDiv.innerHTML = `<p class="alert alert-danger">Error loading data. Please try again later.</p>`;
+        console.error('Error fetching uploads:', error);
+        uploadsListDiv.innerHTML = `<p class="alert alert-danger">Error loading uploads. Please try again later.</p>`;
     }
 }
 
-function renderTableData(data, tableName) {
-    const companiesListDiv = document.getElementById('companiesList');
-    if (!companiesListDiv) return;
+function renderUploadsList(uploads) {
+    const uploadsListDiv = document.getElementById('uploadsList');
+    if (!uploadsListDiv) return;
 
-    if (data.length === 0) {
-        companiesListDiv.innerHTML = `<p>No entries found in ${tableName}. Upload a CSV to get started!</p>`;
+    if (uploads.length === 0) {
+        uploadsListDiv.innerHTML = `<p>No uploads found. Upload a CSV to get started!</p>`;
         return;
     }
-    let tableHtml = `<div class="companies-table-container"><table class="companies-table"><thead><tr>
-                    <th><!-- Avatar Col --></th><th>Name</th><th>Outlet Name</th><th>Email</th><th>Phone</th><th>Actions</th>
-                    </tr></thead><tbody>`;
-    data.forEach(row => {
-        const avatarInitial = row.name ? row.name.charAt(0).toUpperCase() : '?';
-        tableHtml += `<tr>
-                <td><div class="table-avatar-placeholder">${avatarInitial}</div></td>
-                <td>${escapeHTML(row.name)}</td>
-                <td>${escapeHTML(row.outletName)}</td>
-                <td>${escapeHTML(row.Email)}</td>
-                <td>${escapeHTML(row.phone)}</td>
-                <td class="action-buttons">
-                    <button class="btn btn-secondary btn-sm edit-btn" data-id="${row.id}" data-table="${tableName}" title="Edit">&#9998;</button>
-                    <button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}" data-table="${tableName}" title="Delete">&#128465;</button>
-                </td></tr>`;
+    let listHtml = '<ul>';
+    uploads.forEach(upload => {
+        listHtml += `<li><a href="/upload/${upload.id}">${escapeHTML(upload.name)}</a></li>`;
     });
-    tableHtml += '</tbody></table></div>';
-    companiesListDiv.innerHTML = tableHtml;
-
-    document.querySelectorAll('.edit-btn').forEach(button => button.addEventListener('click', handleEditEntry));
-    document.querySelectorAll('.delete-btn').forEach(button => button.addEventListener('click', handleDeleteEntry));
+    listHtml += '</ul>';
+    uploadsListDiv.innerHTML = listHtml;
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadSearchInput = document.getElementById('upload-search');
+    if (uploadSearchInput) {
+        uploadSearchInput.addEventListener('input', function() {
+            loadUploads(this.value);
+        });
+    }
+});
 
 // --- CSV Import Functions ---
 function openMappingModal() {

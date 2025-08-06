@@ -66,11 +66,17 @@ def outreach_page(template_id):
     """Serves the outreach page for a specific template."""
     return render_template('outreach.html', template_id=template_id)
 
+@app.route('/upload/<int:upload_id>')
+@login_required
+def upload_data_page(upload_id):
+    """Serves the page to display data for a specific upload."""
+    return render_template('upload_data.html', upload_id=upload_id)
+
 @app.route('/')
 @login_required
 def index():
-    """Serves the main companies page."""
-    return render_template('companies.html')
+    """Serves the main dashboard page."""
+    return render_template('dashboard.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -251,9 +257,12 @@ def csv_run_import():
         return jsonify({"error": "No target_table specified"}), 400
     if 'column_mapping' not in request.form:
         return jsonify({"error": "No column_mapping provided"}), 400
+    if 'upload_name' not in request.form or not request.form.get('upload_name'):
+        return jsonify({"error": "Upload name is required"}), 400
 
     file = request.files['file']
     target_table = request.form.get('target_table')
+    upload_name = request.form.get('upload_name')
 
     try:
         column_mapping = json.loads(request.form.get('column_mapping'))
@@ -273,6 +282,10 @@ def csv_run_import():
     cursor = conn.cursor()
 
     try:
+        # Create a new upload record
+        cursor.execute("INSERT INTO uploads (name) VALUES (?)", (upload_name,))
+        upload_id = cursor.lastrowid
+
         stream = io.TextIOWrapper(file.stream, encoding='utf-8')
         reader = csv.reader(stream)
 
@@ -290,14 +303,14 @@ def csv_run_import():
         if not valid_mapping:
             return jsonify({"error": "Column mapping is empty or does not match any headers in the CSV file."}), 400
 
-        db_columns = list(valid_mapping.values())
+        db_columns = ['upload_id'] + list(valid_mapping.values())
         placeholders = ', '.join(['?'] * len(db_columns))
         sql = f"INSERT INTO {target_table} ({', '.join(db_columns)}) VALUES ({placeholders})"
 
         imported_count = 0
         for row in reader:
             # Build the tuple of values in the correct order for the SQL statement
-            values_to_insert = []
+            values_to_insert = [upload_id]
             for csv_col in valid_mapping.keys():
                 col_index = header_index_map[csv_col]
                 values_to_insert.append(row[col_index])
@@ -307,7 +320,7 @@ def csv_run_import():
 
         conn.commit()
         return jsonify({
-            "message": f"Import successful. {imported_count} rows imported into '{target_table}'.",
+            "message": f"Import successful. {imported_count} rows imported into '{target_table}' as part of upload '{upload_name}'.",
             "imported_rows": imported_count
         }), 200
 
@@ -753,6 +766,39 @@ def send_targeted_outreach():
 
 
 # --- Old Company Data API Endpoints (to be refactored/removed) ---
+
+@app.route('/api/search')
+@login_required
+def search_uploads():
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify([])
+
+    conn = database.get_db_connection()
+
+    # Find matching upload_ids from journalists and media_titles tables
+    journalist_uploads = conn.execute(
+        "SELECT DISTINCT upload_id FROM journalists WHERE name LIKE ? OR outletName LIKE ? OR Email LIKE ?",
+        (f'%{query}%', f'%{query}%', f'%{query}%')
+    ).fetchall()
+
+    media_title_uploads = conn.execute(
+        "SELECT DISTINCT upload_id FROM media_titles WHERE name LIKE ? OR outletName LIKE ? OR Email LIKE ?",
+        (f'%{query}%', f'%{query}%', f'%{query}%')
+    ).fetchall()
+
+    upload_ids = set([row['upload_id'] for row in journalist_uploads] + [row['upload_id'] for row in media_title_uploads])
+
+    if not upload_ids:
+        conn.close()
+        return jsonify([])
+
+    # Fetch the upload details for the matching upload_ids
+    placeholders = ', '.join(['?'] * len(upload_ids))
+    uploads = conn.execute(f"SELECT * FROM uploads WHERE id IN ({placeholders})", list(upload_ids)).fetchall()
+    conn.close()
+
+    return jsonify([dict(row) for row in uploads])
 
 @app.route('/api/companies', methods=['GET'])
 @login_required
