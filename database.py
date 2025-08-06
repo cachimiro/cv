@@ -95,6 +95,24 @@ def create_tables():
     ''')
     print("DEBUG: 'media_titles' table creation command executed.")
 
+    # Add upload_id column to journalists table if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE journalists ADD COLUMN upload_id INTEGER REFERENCES uploads(id)")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
+
+    # Add upload_id column to media_titles table if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE media_titles ADD COLUMN upload_id INTEGER REFERENCES uploads(id)")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
+
     # Staff Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS staff (
