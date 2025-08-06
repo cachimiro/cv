@@ -906,3 +906,24 @@ th, td {
     background-color: #fff3cd;
     border-color: #ffeeba;
 }
+
+/* Outreach Page Specific Styles */
+.outreach-container .staff-member {
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    border: 1px solid #eee;
+    background-color: #f9f9f9;
+    list-style-type: none; /* Remove bullet points */
+}
+
+.outreach-container .staff-member:hover {
+    background-color: #f0f0f0;
+}
+
+.outreach-container .staff-member.active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
