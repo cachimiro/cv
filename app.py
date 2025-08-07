@@ -767,6 +767,28 @@ def send_targeted_outreach():
 
 # --- Old Company Data API Endpoints (to be refactored/removed) ---
 
+@app.route('/api/upload/<int:upload_id>')
+@login_required
+def get_upload_data(upload_id):
+    conn = database.get_db_connection()
+
+    upload = conn.execute("SELECT name FROM uploads WHERE id = ?", (upload_id,)).fetchone()
+    if not upload:
+        conn.close()
+        return jsonify({"error": "Upload not found"}), 404
+
+    journalists = conn.execute("SELECT * FROM journalists WHERE upload_id = ?", (upload_id,)).fetchall()
+    media_titles = conn.execute("SELECT * FROM media_titles WHERE upload_id = ?", (upload_id,)).fetchall()
+
+    conn.close()
+
+    records = [dict(row) for row in journalists] + [dict(row) for row in media_titles]
+
+    return jsonify({
+        "upload_name": upload['name'],
+        "records": records
+    })
+
 @app.route('/api/search')
 @login_required
 def search_uploads():
