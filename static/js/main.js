@@ -97,11 +97,17 @@ function renderUploadsList(uploads) {
         uploadsListDiv.innerHTML = `<p>No uploads found. Upload a CSV to get started!</p>`;
         return;
     }
-    let listHtml = '<ul>';
+    let listHtml = '<div class="upload-cards-container">';
     uploads.forEach(upload => {
-        listHtml += `<li><a href="/upload/${upload.id}">${escapeHTML(upload.name)}</a></li>`;
+        const date = new Date(upload.created_at).toLocaleDateString();
+        listHtml += `
+            <a href="/upload/${upload.id}" class="upload-card">
+                <div class="upload-card-title">${escapeHTML(upload.name)}</div>
+                <div class="upload-card-date">Uploaded on: ${date}</div>
+            </a>
+        `;
     });
-    listHtml += '</ul>';
+    listHtml += '</div>';
     uploadsListDiv.innerHTML = listHtml;
 }
 
