@@ -75,6 +75,7 @@
                 <li class="{{ 'active' if request.endpoint == 'staff_management' else '' }}"><a href="{{ url_for('staff_management') }}"><span class="nav-icon">&#128101;</span> Staff</a></li>
                 <li class="{{ 'active' if request.endpoint == 'email_templates' else '' }}"><a href="{{ url_for('email_templates') }}"><span class="nav-icon">&#9993;</span> Email Templates</a></li>
                 <li class="{{ 'active' if request.endpoint == 'follow_up_email' else '' }}"><a href="{{ url_for('follow_up_email') }}"><span class="nav-icon">&#9993;</span> Follow Up Emails</a></li>
+                <li class="{{ 'active' if request.endpoint == 'published_reports' else '' }}"><a href="{{ url_for('published_reports') }}"><span class="nav-icon">&#128220;</span> Published Reports</a></li>
                 <li class="{{ 'active' if request.endpoint == 'settings_placeholder' else '' }}"><a href="#"><span class="nav-icon">&#9881;</span> Settings</a></li>
                 </ul>
             </nav>

@@ -66,6 +66,12 @@ def follow_up_email():
     """Serves the follow up email page."""
     return render_template('follow_up_email.html')
 
+@app.route('/published-reports')
+@login_required
+def published_reports():
+    """Serves the published reports page."""
+    return render_template('published_reports.html')
+
 @app.route('/outreach/<int:template_id>')
 @login_required
 def outreach_page(template_id):
@@ -457,6 +463,37 @@ def follow_up_email_by_id(email_id):
         conn.commit()
         conn.close()
         return jsonify({"message": "Follow-up email deleted successfully"})
+
+# --- Published Reports API Endpoints ---
+@app.route('/api/published-reports', methods=['GET'])
+@login_required
+def get_published_reports():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports")
+    reports = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in reports])
+
+@app.route('/api/published-reports', methods=['POST'])
+@login_required
+def add_published_report():
+    data = request.get_json()
+    link = data.get('link')
+    article = data.get('article')
+    date_of_publish = data.get('date_of_publish')
+
+    if not link or not article or not date_of_publish:
+        return jsonify({"error": "Link, article, and date of publish are required"}), 400
+
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO published_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+
+    return jsonify({"message": "Published report added successfully", "id": new_id}), 201
 
 @app.route('/api/upload-template', methods=['POST'])
 @login_required

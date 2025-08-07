@@ -152,9 +152,19 @@ def create_tables():
         )
     ''')
 
+    # Published Reports Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS published_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            link TEXT NOT NULL,
+            article TEXT NOT NULL,
+            date_of_publish TEXT NOT NULL
+        )
+    ''')
+
     conn.commit()
     conn.close()
-    print("Database tables (companies, users, journalists, media_titles, staff, email_templates, follow_up_emails) checked/created successfully.")
+    print("Database tables (companies, users, journalists, media_titles, staff, email_templates, follow_up_emails, published_reports) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""
