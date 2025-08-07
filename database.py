@@ -143,9 +143,18 @@ def create_tables():
         else:
             raise
 
+    # Follow Up Emails Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS follow_up_emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            content TEXT NOT NULL
+        )
+    ''')
+
     conn.commit()
     conn.close()
-    print("Database tables (companies, users, journalists, media_titles, staff, email_templates) checked/created successfully.")
+    print("Database tables (companies, users, journalists, media_titles, staff, email_templates, follow_up_emails) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""

@@ -113,12 +113,14 @@ class TestCompanyDatabase(unittest.TestCase):
         payload = {"id": 1, "name": "Test Webhook Co", "url": "http://webhook.com", "industry": "Testing"}
         result = database.send_to_webhook(payload)
         self.assertTrue(result)
-        mock_post.assert_called_once()
-        args, kwargs = mock_post.call_args
-        self.assertEqual(args[0], database.MAKE_WEBHOOK_URL)
-        self.assertEqual(kwargs['data'], json.dumps(payload))
-        self.assertIn('Content-Type', kwargs['headers'])
-        self.assertEqual(kwargs['headers']['Content-Type'], 'application/json')
+        self.assertEqual(mock_post.call_count, len(database.WEBHOOK_URLS))
+        for url in database.WEBHOOK_URLS:
+            mock_post.assert_any_call(
+                url,
+                data=json.dumps(payload),
+                headers={'Content-Type': 'application/json'},
+                timeout=10
+            )
         print("test_7_send_to_webhook_success PASSED")
 
     @unittest.mock.patch('database.requests.post')
@@ -135,12 +137,7 @@ class TestCompanyDatabase(unittest.TestCase):
         payload = {"id": 2, "name": "Error Co", "url": "http://error.com", "industry": "Failure"}
         result = database.send_to_webhook(payload)
         self.assertFalse(result)
-        mock_post.assert_called_once_with(
-            database.MAKE_WEBHOOK_URL,
-            data=json.dumps(payload),
-            headers={'Content-Type': 'application/json'},
-            timeout=10
-        )
+        self.assertEqual(mock_post.call_count, len(database.WEBHOOK_URLS))
         print("test_8_send_to_webhook_http_error PASSED")
 
     @unittest.mock.patch('database.requests.post')
@@ -150,12 +147,7 @@ class TestCompanyDatabase(unittest.TestCase):
         payload = {"id": 3, "name": "Timeout Co", "url": "http://timeout.com", "industry": "Waiting"}
         result = database.send_to_webhook(payload)
         self.assertFalse(result)
-        mock_post.assert_called_once_with(
-            database.MAKE_WEBHOOK_URL,
-            data=json.dumps(payload),
-            headers={'Content-Type': 'application/json'},
-            timeout=10
-        )
+        self.assertEqual(mock_post.call_count, len(database.WEBHOOK_URLS))
         print("test_9_send_to_webhook_timeout PASSED")
 
     def test_10_get_company_by_id(self):

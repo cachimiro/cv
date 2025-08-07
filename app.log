@@ -1,0 +1,9 @@
+DEBUG: Attempting to create 'journalists' table...
+DEBUG: 'journalists' table creation command executed.
+DEBUG: Attempting to create 'media_titles' table...
+DEBUG: 'media_titles' table creation command executed.
+Database tables (companies, users, journalists, media_titles, staff, email_templates, follow_up_emails) checked/created successfully.
+ * Serving Flask app 'app'
+ * Debug mode: on
+Address already in use
+Port 5000 is in use by another program. Either identify and stop that program, or start the server with a different port.

@@ -60,6 +60,12 @@ def email_templates():
     """Serves the email templates page."""
     return render_template('email_templates.html')
 
+@app.route('/follow-up-email')
+@login_required
+def follow_up_email():
+    """Serves the follow up email page."""
+    return render_template('follow_up_email.html')
+
 @app.route('/outreach/<int:template_id>')
 @login_required
 def outreach_page(template_id):
@@ -387,6 +393,70 @@ def email_template(template_id):
         conn.close()
 
         return jsonify({"message": "Template updated successfully"})
+
+# --- Follow Up Email API Endpoints ---
+@app.route('/api/follow-up-emails', methods=['GET'])
+@login_required
+def get_follow_up_emails():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, content FROM follow_up_emails")
+    emails = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in emails])
+
+@app.route('/api/follow-up-emails', methods=['POST'])
+@login_required
+def add_follow_up_email():
+    data = request.get_json()
+    name = data.get('name')
+    content = data.get('content')
+
+    if not name or not content:
+        return jsonify({"error": "Name and content are required"}), 400
+
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO follow_up_emails (name, content) VALUES (?, ?)", (name, content))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+
+    return jsonify({"message": "Follow-up email added successfully", "id": new_id}), 201
+
+@app.route('/api/follow-up-email/<int:email_id>', methods=['GET', 'PUT', 'DELETE'])
+@login_required
+def follow_up_email_by_id(email_id):
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+
+    if request.method == 'GET':
+        cursor.execute("SELECT id, name, content FROM follow_up_emails WHERE id = ?", (email_id,))
+        email = cursor.fetchone()
+        conn.close()
+        if email:
+            return jsonify(dict(email))
+        else:
+            return jsonify({"error": "Follow-up email not found"}), 404
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        name = data.get('name')
+        content = data.get('content')
+
+        if not name or not content:
+            return jsonify({"error": "Name and content are required"}), 400
+
+        cursor.execute("UPDATE follow_up_emails SET name = ?, content = ? WHERE id = ?", (name, content, email_id))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Follow-up email updated successfully"})
+
+    if request.method == 'DELETE':
+        cursor.execute("DELETE FROM follow_up_emails WHERE id = ?", (email_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Follow-up email deleted successfully"})
 
 @app.route('/api/upload-template', methods=['POST'])
 @login_required
