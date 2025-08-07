@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${escapeHTML(email.name)}</td>
                     <td><pre class="template-content">${escapeHTML(email.content.substring(0, 150))}${email.content.length > 150 ? '...' : ''}</pre></td>
                     <td class="action-buttons">
-                        <button class="btn btn-secondary btn-sm" onclick="viewFollowUpEmail(${email.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteFollowUpEmail(${email.id})">Delete</button>
+                        <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}">Edit</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="${email.id}">Delete</button>
                     </td>
                 `;
             });
@@ -137,60 +137,72 @@ document.addEventListener('DOMContentLoaded', function() {
             showFlashMessage(`Update failed: ${error.message}`, 'danger');
         }
     });
-});
 
-// Helper function to escape HTML to prevent XSS
-function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, function(match) {
-        return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        }[match];
+    // Event delegation for view and delete buttons
+    followUpEmailsList.addEventListener('click', function(event) {
+        const target = event.target;
+        if (target.classList.contains('btn-delete')) {
+            const emailId = target.dataset.id;
+            deleteFollowUpEmail(emailId);
+        }
+        if (target.classList.contains('btn-edit')) {
+            const emailId = target.dataset.id;
+            viewFollowUpEmail(emailId);
+        }
     });
-}
 
-async function viewFollowUpEmail(id) {
-    try {
-        const response = await fetch(`/api/follow-up-email/${id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const email = await response.json();
-
-        const modal = document.getElementById('edit-modal');
-        modal.querySelector('#edit-id').value = email.id;
-        modal.querySelector('#edit-name').value = email.name;
-        modal.querySelector('#edit-content').value = email.content;
-
-        modal.style.display = 'block';
-    } catch (error) {
-        console.error('Error fetching follow-up email:', error);
-        showFlashMessage('Could not fetch follow-up email details.', 'danger');
-    }
-}
-
-
-async function deleteFollowUpEmail(id) {
-    if (confirm(`Are you sure you want to delete this follow-up email?`)) {
+    async function viewFollowUpEmail(id) {
         try {
-            const response = await await fetch(`/api/follow-up-email/${id}`, {
-                method: 'DELETE'
-            });
-
-            const result = await response.json();
-
-            if(response.ok) {
-                showFlashMessage(result.message || 'Follow-up email deleted successfully!', 'success');
-                loadFollowUpEmails(); // Refresh the list
-            } else {
-                throw new Error(result.error || 'An unknown error occurred.');
+            const response = await fetch(`/api/follow-up-email/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            const email = await response.json();
+
+            const modal = document.getElementById('edit-modal');
+            modal.querySelector('#edit-id').value = email.id;
+            modal.querySelector('#edit-name').value = email.name;
+            modal.querySelector('#edit-content').value = email.content;
+
+            modal.style.display = 'block';
         } catch (error) {
-            console.error('Delete error:', error);
-            showFlashMessage(`Delete failed: ${error.message}`, 'danger');
+            console.error('Error fetching follow-up email:', error);
+            showFlashMessage('Could not fetch follow-up email details.', 'danger');
         }
     }
-}
+
+    async function deleteFollowUpEmail(id) {
+        if (confirm(`Are you sure you want to delete this follow-up email?`)) {
+            try {
+                const response = await fetch(`/api/follow-up-email/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showFlashMessage(result.message || 'Follow-up email deleted successfully!', 'success');
+                    loadFollowUpEmails(); // Refresh the list
+                } else {
+                    throw new Error(result.error || 'An unknown error occurred.');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showFlashMessage(`Delete failed: ${error.message}`, 'danger');
+            }
+        }
+    }
+
+    // Helper function to escape HTML to prevent XSS
+    function escapeHTML(str) {
+        return str.replace(/[&<>"']/g, function(match) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match];
+        });
+    }
+});
