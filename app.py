@@ -767,9 +767,22 @@ def send_targeted_outreach():
 
 # --- Old Company Data API Endpoints (to be refactored/removed) ---
 
-@app.route('/api/upload/<int:upload_id>')
+@app.route('/api/upload/<int:upload_id>', methods=['GET', 'PUT'])
 @login_required
-def get_upload_data(upload_id):
+def upload_data(upload_id):
+    if request.method == 'PUT':
+        data = request.get_json()
+        new_name = data.get('name')
+        if not new_name:
+            return jsonify({"error": "New name is required"}), 400
+
+        conn = database.get_db_connection()
+        conn.execute("UPDATE uploads SET name = ? WHERE id = ?", (new_name, upload_id))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Upload name updated successfully"})
+
+    # GET request logic
     conn = database.get_db_connection()
 
     upload = conn.execute("SELECT name FROM uploads WHERE id = ?", (upload_id,)).fetchone()

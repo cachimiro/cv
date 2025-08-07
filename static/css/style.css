@@ -1048,3 +1048,15 @@ th, td {
     font-size: 0.875rem;
     color: #777;
 }
+
+.upload-card .edit-upload-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.upload-card:hover .edit-upload-btn {
+    opacity: 1;
+}

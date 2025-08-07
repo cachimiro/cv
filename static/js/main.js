@@ -101,14 +101,21 @@ function renderUploadsList(uploads) {
     uploads.forEach(upload => {
         const date = new Date(upload.created_at).toLocaleDateString();
         listHtml += `
-            <a href="/upload/${upload.id}" class="upload-card">
-                <div class="upload-card-title">${escapeHTML(upload.name)}</div>
-                <div class="upload-card-date">Uploaded on: ${date}</div>
-            </a>
+            <div class="upload-card">
+                <a href="/upload/${upload.id}" class="upload-card-link">
+                    <div class="upload-card-title">${escapeHTML(upload.name)}</div>
+                    <div class="upload-card-date">Uploaded on: ${date}</div>
+                </a>
+                <button class="btn btn-secondary btn-sm edit-upload-btn" data-id="${upload.id}" data-name="${escapeHTML(upload.name)}">Edit</button>
+            </div>
         `;
     });
     listHtml += '</div>';
     uploadsListDiv.innerHTML = listHtml;
+
+    document.querySelectorAll('.edit-upload-btn').forEach(button => {
+        button.addEventListener('click', handleEditUploadName);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -348,6 +355,31 @@ async function handleSendTargetedOutreach() {
         alert(`Error: ${error.message}`);
     } finally {
         if(outreachSendBtn) { outreachSendBtn.disabled = false; outreachSendBtn.textContent = 'Send to Webhook'; }
+    }
+}
+
+async function handleEditUploadName(event) {
+    const uploadId = event.target.dataset.id;
+    const currentName = event.target.dataset.name;
+    const newName = prompt("Enter a new name for the upload:", currentName);
+
+    if (newName && newName.trim() !== '' && newName !== currentName) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/upload/${uploadId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: newName })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'An unknown error occurred.');
+            showFlashMessage(result.message, 'success');
+            loadUploads(); // Refresh the list
+        } catch (error) {
+            console.error("Error updating upload name:", error);
+            showFlashMessage(`Error: ${error.message}`, 'danger');
+        }
     }
 }
 
