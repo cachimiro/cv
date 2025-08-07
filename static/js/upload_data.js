@@ -5,31 +5,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadUploadData() {
         try {
-            const response = await fetch(`/api/upload/${uploadId}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const uploadResponse = await fetch(`/api/upload/${uploadId}`);
+            if (!uploadResponse.ok) {
+                throw new Error(`HTTP error! status: ${uploadResponse.status}`);
             }
-            const data = await response.json();
+            const uploadData = await uploadResponse.json();
 
             if (uploadNameSpan) {
-                uploadNameSpan.textContent = data.upload_name;
+                uploadNameSpan.textContent = uploadData.upload_name;
             }
 
-            if (data.records.length === 0) {
+            if (uploadData.records.length === 0) {
                 uploadDataContainer.innerHTML = '<p>No data found for this upload.</p>';
                 return;
             }
 
-            let tableHtml = '<table class="companies-table"><thead><tr><th>Name</th><th>Outlet</th><th>Email</th><th>Phone</th></tr></thead><tbody>';
-            data.records.forEach(record => {
-                tableHtml += `
-                    <tr>
-                        <td>${escapeHTML(record.name)}</td>
-                        <td>${escapeHTML(record.outletName)}</td>
-                        <td>${escapeHTML(record.Email)}</td>
-                        <td>${escapeHTML(record.phone)}</td>
-                    </tr>
-                `;
+            const schemaResponse = await fetch(`/api/table/${uploadData.table_name}/schema`);
+            if (!schemaResponse.ok) {
+                throw new Error(`HTTP error! status: ${schemaResponse.status}`);
+            }
+            const schemaData = await schemaResponse.json();
+            const headers = schemaData.columns;
+
+            let tableHtml = '<table class="companies-table"><thead><tr>';
+            headers.forEach(header => {
+                tableHtml += `<th>${escapeHTML(header)}</th>`;
+            });
+            tableHtml += '</tr></thead><tbody>';
+
+            uploadData.records.forEach(record => {
+                tableHtml += '<tr>';
+                headers.forEach(header => {
+                    tableHtml += `<td>${escapeHTML(record[header])}</td>`;
+                });
+                tableHtml += '</tr>';
             });
             tableHtml += '</tbody></table>';
             uploadDataContainer.innerHTML = tableHtml;

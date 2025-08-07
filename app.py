@@ -797,9 +797,12 @@ def upload_data(upload_id):
 
     records = [dict(row) for row in journalists] + [dict(row) for row in media_titles]
 
+    table_name = 'journalists' if journalists else 'media_titles'
+
     return jsonify({
         "upload_name": upload['name'],
-        "records": records
+        "records": records,
+        "table_name": table_name
     })
 
 @app.route('/api/search')
