@@ -767,7 +767,7 @@ def send_targeted_outreach():
 
 # --- Old Company Data API Endpoints (to be refactored/removed) ---
 
-@app.route('/api/upload/<int:upload_id>', methods=['GET', 'PUT'])
+@app.route('/api/upload/<int:upload_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
 def upload_data(upload_id):
     if request.method == 'PUT':
@@ -781,6 +781,15 @@ def upload_data(upload_id):
         conn.commit()
         conn.close()
         return jsonify({"message": "Upload name updated successfully"})
+
+    if request.method == 'DELETE':
+        conn = database.get_db_connection()
+        conn.execute("DELETE FROM journalists WHERE upload_id = ?", (upload_id,))
+        conn.execute("DELETE FROM media_titles WHERE upload_id = ?", (upload_id,))
+        conn.execute("DELETE FROM uploads WHERE id = ?", (upload_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Upload deleted successfully"})
 
     # GET request logic
     conn = database.get_db_connection()

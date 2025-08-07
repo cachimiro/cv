@@ -1049,16 +1049,21 @@ th, td {
     color: #777;
 }
 
-.upload-card .edit-upload-btn {
+.upload-card-actions {
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
     opacity: 0;
     transition: opacity 0.3s ease;
+    display: flex;
 }
 
-.upload-card:hover .edit-upload-btn {
+.upload-card:hover .upload-card-actions {
     opacity: 1;
+}
+
+.upload-card-actions .btn {
+    margin-left: 0.5rem;
 }
 
 .upload-card-link {

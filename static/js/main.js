@@ -106,7 +106,10 @@ function renderUploadsList(uploads) {
                     <div class="upload-card-title">${escapeHTML(upload.name)}</div>
                     <div class="upload-card-date">Uploaded on: ${date}</div>
                 </a>
-                <button class="btn btn-secondary btn-sm edit-upload-btn" data-id="${upload.id}" data-name="${escapeHTML(upload.name)}">Edit</button>
+                <div class="upload-card-actions">
+                    <button class="btn btn-secondary btn-sm edit-upload-btn" data-id="${upload.id}" data-name="${escapeHTML(upload.name)}">Edit</button>
+                    <button class="btn btn-danger btn-sm delete-upload-btn" data-id="${upload.id}">Delete</button>
+                </div>
             </div>
         `;
     });
@@ -115,6 +118,10 @@ function renderUploadsList(uploads) {
 
     document.querySelectorAll('.edit-upload-btn').forEach(button => {
         button.addEventListener('click', handleEditUploadName);
+    });
+
+    document.querySelectorAll('.delete-upload-btn').forEach(button => {
+        button.addEventListener('click', handleDeleteUpload);
     });
 }
 
@@ -378,6 +385,26 @@ async function handleEditUploadName(event) {
             loadUploads(); // Refresh the list
         } catch (error) {
             console.error("Error updating upload name:", error);
+            showFlashMessage(`Error: ${error.message}`, 'danger');
+        }
+    }
+}
+
+async function handleDeleteUpload(event) {
+    const uploadId = event.target.dataset.id;
+    const confirmation = confirm("Are you sure you want to delete this upload and all its data? This action cannot be undone.");
+
+    if (confirmation) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/upload/${uploadId}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'An unknown error occurred.');
+            showFlashMessage(result.message, 'success');
+            loadUploads(); // Refresh the list
+        } catch (error) {
+            console.error("Error deleting upload:", error);
             showFlashMessage(`Error: ${error.message}`, 'danger');
         }
     }
