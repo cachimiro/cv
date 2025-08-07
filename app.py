@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template, flash, redirect, url_for # Added flash, redirect, url_for
 import database # Your existing database.py
 import os # For potential API key access
-# from functools import wraps # For API key decorator if used later
+from functools import wraps # For API key decorator if used later
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from user import User # Import the User model
 
@@ -37,14 +37,14 @@ def is_authenticated(api_key):
         return False
     return api_key == EXPECTED_API_KEY
 
-# def require_api_key(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         provided_key = request.headers.get('X-API-Key')
-#         if not is_authenticated(provided_key):
-#             return jsonify({"error": "Unauthorized. API key is missing or invalid."}), 401
-#         return f(*args, **kwargs)
-#     return decorated_function
+def require_api_key(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        provided_key = request.headers.get('X-API-Key')
+        if not is_authenticated(provided_key):
+            return jsonify({"error": "Unauthorized. API key is missing or invalid."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 # --- Web Page Routes ---
 
@@ -478,6 +478,26 @@ def get_published_reports():
 @app.route('/api/published-reports', methods=['POST'])
 @login_required
 def add_published_report():
+    data = request.get_json()
+    link = data.get('link')
+    article = data.get('article')
+    date_of_publish = data.get('date_of_publish')
+
+    if not link or not article or not date_of_publish:
+        return jsonify({"error": "Link, article, and date of publish are required"}), 400
+
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO published_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+
+    return jsonify({"message": "Published report added successfully", "id": new_id}), 201
+
+@app.route('/api/external/published-reports', methods=['POST'])
+@require_api_key
+def add_external_published_report():
     data = request.get_json()
     link = data.get('link')
     article = data.get('article')
