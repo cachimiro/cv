@@ -259,15 +259,11 @@ document.addEventListener('DOMContentLoaded', function() {
     outletNameSelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
-        console.log(`Searching for outlet: ${search}`);
         if (search) {
             const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
-            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
-            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            console.log('Setting choices:', choices);
             outletNameChoices.setChoices(choices, 'value', 'label', true);
         }
     });
@@ -275,15 +271,11 @@ document.addEventListener('DOMContentLoaded', function() {
     citySelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
-        console.log(`Searching for city: ${search}`);
         if (search) {
             const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
-            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
-            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            console.log('Setting choices:', choices);
             cityChoices.setChoices(choices, 'value', 'label', true);
         }
     });
@@ -291,15 +283,11 @@ document.addEventListener('DOMContentLoaded', function() {
     editOutletNameSelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
-        console.log(`Searching for edit outlet: ${search}`);
         if (search) {
             const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
-            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
-            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            console.log('Setting choices:', choices);
             editOutletNameChoices.setChoices(choices, 'value', 'label', true);
         }
     });
@@ -307,15 +295,11 @@ document.addEventListener('DOMContentLoaded', function() {
     editCitySelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
-        console.log(`Searching for edit city: ${search}`);
         if (search) {
             const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
-            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
-            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            console.log('Setting choices:', choices);
             editCityChoices.setChoices(choices, 'value', 'label', true);
         }
     });

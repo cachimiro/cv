@@ -523,6 +523,15 @@ h1, h2, h3 {
     color: var(--text);
 }
 
+.choices__list--dropdown {
+    z-index: 10;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-top: 0;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
 .choices-container {
     max-height: 150px;
     overflow-y: auto;
