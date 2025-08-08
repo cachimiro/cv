@@ -173,6 +173,70 @@ document.addEventListener('DOMContentLoaded', function() {
         loadCities(uploadId);
     });
 
+    document.getElementById('select-all-outlets').addEventListener('click', async function() {
+        const uploadId = uploadIdSelect.value;
+        const url = uploadId ? `/api/outlets/all?upload_id=${uploadId}` : '/api/outlets/all';
+        const response = await fetch(url);
+        const outlets = await response.json();
+        const selectedOutlets = outletNameChoices.getValue(true);
+
+        if (selectedOutlets.length === outlets.length) {
+            outletNameChoices.clearStore();
+            this.textContent = 'Select All';
+        } else {
+            outletNameChoices.setValue(outlets);
+            this.textContent = 'Deselect All';
+        }
+    });
+
+    document.getElementById('select-all-cities').addEventListener('click', async function() {
+        const uploadId = uploadIdSelect.value;
+        const url = uploadId ? `/api/cities/all?upload_id=${uploadId}` : '/api/cities/all';
+        const response = await fetch(url);
+        const cities = await response.json();
+        const selectedCities = cityChoices.getValue(true);
+
+        if (selectedCities.length === cities.length) {
+            cityChoices.clearStore();
+            this.textContent = 'Select All';
+        } else {
+            cityChoices.setValue(cities);
+            this.textContent = 'Deselect All';
+        }
+    });
+
+    document.getElementById('edit-select-all-outlets').addEventListener('click', async function() {
+        const uploadId = uploadIdSelect.value;
+        const url = uploadId ? `/api/outlets/all?upload_id=${uploadId}` : '/api/outlets/all';
+        const response = await fetch(url);
+        const outlets = await response.json();
+        const selectedOutlets = editOutletNameChoices.getValue(true);
+
+        if (selectedOutlets.length === outlets.length) {
+            editOutletNameChoices.clearStore();
+            this.textContent = 'Select All';
+        } else {
+            editOutletNameChoices.setValue(outlets);
+            this.textContent = 'Deselect All';
+        }
+    });
+
+    document.getElementById('edit-select-all-cities').addEventListener('click', async function() {
+        const uploadId = uploadIdSelect.value;
+        const url = uploadId ? `/api/cities/all?upload_id=${uploadId}` : '/api/cities/all';
+        const response = await fetch(url);
+        const cities = await response.json();
+        const selectedCities = editCityChoices.getValue(true);
+
+        if (selectedCities.length === cities.length) {
+            editCityChoices.clearStore();
+            this.textContent = 'Select All';
+        } else {
+            editCityChoices.setValue(cities);
+            this.textContent = 'Deselect All';
+        }
+    });
+
     outletNameSelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
