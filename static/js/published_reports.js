@@ -1,104 +1,88 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const addReportForm = document.getElementById('add-report-form');
-    const reportsList = document.getElementById('reports-list');
+    const f = document.getElementById('report-form');
+    if (!f) return; // Don't run this script if the form isn't on the page
 
-    // Function to fetch and display reports
+    const btn = document.getElementById('submit-btn');
+
+    const validateForm = () => {
+        return f.link.checkValidity() && f.article.value.trim() && f.date.value;
+    };
+
+    f.addEventListener('input', () => {
+        btn.disabled = !validateForm();
+    });
+
+    f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/published-reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    link: f.link.value.trim(),
+                    article: f.article.value.trim(),
+                    date_of_publish: f.date.value
+                })
+            });
+            if (!res.ok) throw new Error('Request failed');
+            const result = await res.json();
+            showFlashMessage(result.message || 'Report saved successfully!', 'success');
+            f.reset();
+            btn.disabled = true;
+            loadReports();
+        } catch (err) {
+            showFlashMessage('Error saving report.', 'danger');
+            btn.disabled = false;
+        }
+    });
+
     async function loadReports() {
+        const tableArea = document.getElementById('table-area');
         try {
             const response = await fetch('/api/published-reports');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error('Could not fetch reports');
             const reports = await response.json();
 
-            reportsList.innerHTML = ''; // Clear current list
             if (reports.length === 0) {
-                reportsList.innerHTML = '<p>No published reports found.</p>';
+                tableArea.innerHTML = '<div class="empty-state"><p>No reports yet. Add one to get started.</p></div>';
                 return;
             }
 
             const table = document.createElement('table');
-            table.className = 'companies-table'; // Use existing table style
+            table.className = 'companies-table';
+            let rows = reports.map(r => `
+                <tr>
+                    <td><a href="${r.link}" target="_blank" rel="noopener">${escapeHTML(r.link)}</a></td>
+                    <td>${escapeHTML(r.article)}</td>
+                    <td class="text-right">${r.date_of_publish}</td>
+                </tr>
+            `).join('');
             table.innerHTML = `
                 <thead>
                     <tr>
                         <th>Link</th>
                         <th>Article</th>
-                        <th>Date of Publish</th>
+                        <th class="text-right">Published On</th>
                     </tr>
                 </thead>
-                <tbody>
-                </tbody>
+                <tbody>${rows}</tbody>
             `;
-            const tbody = table.querySelector('tbody');
-            reports.forEach(report => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td><a href="${escapeHTML(report.link)}" target="_blank">${escapeHTML(report.link)}</a></td>
-                    <td>${escapeHTML(report.article)}</td>
-                    <td>${escapeHTML(report.date_of_publish)}</td>
-                `;
-            });
-            reportsList.appendChild(table);
+            tableArea.innerHTML = '';
+            tableArea.appendChild(table);
         } catch (error) {
-            console.error('Error loading reports:', error);
-            reportsList.innerHTML = '<p>Error loading reports. Please try again later.</p>';
+            tableArea.innerHTML = '<div class="empty-state"><p>Error loading reports.</p></div>';
         }
     }
 
-    // Handle form submission
-    if (addReportForm) {
-        addReportForm.addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const link = document.getElementById('link').value;
-            const article = document.getElementById('article').value;
-            const date_of_publish = document.getElementById('date_of_publish').value;
-            const submitButton = addReportForm.querySelector('button[type="submit"]');
-
-            submitButton.disabled = true;
-            submitButton.textContent = 'Saving...';
-
-            try {
-                const response = await fetch('/api/published-reports', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ link, article, date_of_publish })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showFlashMessage(result.message || 'Report saved successfully!', 'success');
-                    addReportForm.reset(); // Clear the form
-                    loadReports(); // Refresh the list
-                } else {
-                    throw new Error(result.error || 'An unknown error occurred.');
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                showFlashMessage(`Save failed: ${error.message}`, 'danger');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Save';
-            }
-        });
-    }
-
-    // Initial load of reports
+    // Initial and periodic loading
     loadReports();
-
-    // Helper function to escape HTML to prevent XSS
-    function escapeHTML(str) {
-        return str.toString().replace(/[&<>"']/g, function(match) {
-            return {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[match];
-        });
-    }
+    setInterval(loadReports, 10000); // Check for new reports every 10 seconds
 });
+
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[match]));
+}

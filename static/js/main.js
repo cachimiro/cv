@@ -5,48 +5,38 @@ let outreachSelections = { staff: [], outlets: [] };
 const API_BASE_URL = '/api';
 
 // --- Main App Initialization ---
-document.addEventListener('DOMContentLoaded', function() {
-    initApp();
-});
-
 function initApp() {
     console.log("Sway PR Data App Initializing...");
 
     // --- Element Attachments ---
-    // Attach to elements that are always on the page
     const uploadCsvBtn = document.getElementById('uploadCsvBtn');
     const csvFileInput = document.getElementById('csvFileInput');
     const createOutreachBtn = document.getElementById('createOutreachBtn');
+    const mappingModal = document.getElementById('mappingModal');
+    const outreachModal = document.getElementById('outreachModal');
+    const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+    const leftSidebar = document.querySelector('.left-sidebar');
+    const uploadSearchInput = document.getElementById('upload-search');
+    const togglePassword = document.querySelector('.toggle-password');
+    const loginForm = document.getElementById('login-form');
 
     if (uploadCsvBtn && csvFileInput) {
-        uploadCsvBtn.addEventListener('click', () => {
-            alert("Upload button was clicked!");
-            csvFileInput.click();
-        });
+        uploadCsvBtn.addEventListener('click', () => csvFileInput.click());
         csvFileInput.addEventListener('change', handleFileSelect);
-        console.log("Attached CSV upload listeners.");
     }
 
     if (createOutreachBtn) {
-        createOutreachBtn.addEventListener('click', () => {
-            alert("Create Outreach button was clicked!");
-            openOutreachModal();
-        });
-        console.log("Attached outreach listener.");
+        createOutreachBtn.addEventListener('click', () => openOutreachModal());
     }
 
-    // Attach listeners to modal parent elements if they exist
-    const mappingModal = document.getElementById('mappingModal');
     if (mappingModal) {
         mappingModal.addEventListener('click', (event) => {
             if (event.target.id === 'closeMappingModalBtn' || event.target.id === 'cancelMappingBtn') closeMappingModal();
             else if (event.target.id === 'runImportBtn') handleRunImport();
             else if (event.target === mappingModal) closeMappingModal();
         });
-        console.log("Attached mapping modal listeners.");
     }
 
-    const outreachModal = document.getElementById('outreachModal');
     if (outreachModal) {
         outreachModal.addEventListener('click', (event) => {
             if (event.target.id === 'closeOutreachModalBtn' || event.target.id === 'outreachCancelBtn') resetOutreachModal();
@@ -54,20 +44,47 @@ function initApp() {
             else if (event.target.id === 'outreachSendBtn') handleSendTargetedOutreach();
             else if (event.target === outreachModal) resetOutreachModal();
         });
-        console.log("Attached outreach modal step listeners.");
+    }
+
+    if (mobileNavToggle && leftSidebar) {
+        mobileNavToggle.addEventListener('click', () => leftSidebar.classList.toggle('is-open'));
+    }
+
+    if (uploadSearchInput) {
+        uploadSearchInput.addEventListener('input', () => loadUploads(uploadSearchInput.value));
+    }
+
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye-slash-fill');
+                icon.classList.add('bi-eye-fill');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-fill');
+                icon.classList.add('bi-eye-slash-fill');
+            }
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', function() {
+            const loginButton = document.getElementById('login-button');
+            const btnText = loginButton.querySelector('.btn-text');
+            const btnSpinner = loginButton.querySelector('.btn-spinner');
+
+            loginButton.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+        });
     }
 
     // --- Initial Data Load ---
-    loadUploads();
-
-    const mobileNavToggle = document.getElementById('mobile-nav-toggle');
-    const leftSidebar = document.querySelector('.left-sidebar');
-
-    if (mobileNavToggle && leftSidebar) {
-        mobileNavToggle.addEventListener('click', function() {
-            leftSidebar.classList.toggle('is-open');
-        });
-        console.log("Attached mobile navigation toggle listener.");
+    if (document.getElementById('uploadsList')) {
+        loadUploads();
     }
 }
 
@@ -143,17 +160,44 @@ function renderUploadsList(uploads) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    initApp();
 
-    document.querySelectorAll('.delete-upload-btn').forEach(button => {
-        button.addEventListener('click', handleDeleteUpload);
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
     const uploadSearchInput = document.getElementById('upload-search');
     if (uploadSearchInput) {
         uploadSearchInput.addEventListener('input', function() {
             loadUploads(this.value);
+        });
+    }
+
+    // Password visibility toggle
+    const togglePassword = document.querySelector('.toggle-password');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye-slash-fill');
+                icon.classList.add('bi-eye-fill');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-fill');
+                icon.classList.add('bi-eye-slash-fill');
+            }
+        });
+    }
+
+    // Login form submission with loading state
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function() {
+            const loginButton = document.getElementById('login-button');
+            const btnText = loginButton.querySelector('.btn-text');
+            const btnSpinner = loginButton.querySelector('.btn-spinner');
+
+            loginButton.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
         });
     }
 });
