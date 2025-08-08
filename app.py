@@ -41,7 +41,8 @@ def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         provided_key = request.headers.get('X-API-Key') or request.headers.get('x-api-key')
-        print(f"DEBUG: Received API key: {provided_key}")
+        with open("api_key_log.txt", "a") as log_file:
+            log_file.write(f"DEBUG: Received API key: '{provided_key}'\\n")
         if not is_authenticated(provided_key):
             return jsonify({"error": "Unauthorized. API key is missing or invalid."}), 401
         return f(*args, **kwargs)
