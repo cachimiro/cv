@@ -165,22 +165,6 @@ html, body {
 }
 
 
-/* Old .container, .navbar, .content-area, .footer can be removed or heavily refactored */
-/* For now, let's comment them out to avoid conflicts, will remove later if truly unused */
-/*
-.container { ... }
-.navbar { ... }
-.navbar .container { ... }
-.navbar-brand { ... }
-.navbar-nav { ... }
-.navbar-nav li { ... }
-.navbar-nav a { ... }
-.navbar-nav a:hover { ... }
-.navbar-text { ... }
-.content-area { ... }
-.footer { ... }
-*/
-
 /* Flash messages container - should be inside main-canvas */
 .flash-messages-container {
     margin-bottom: 1.5rem; /* Space below flash messages */

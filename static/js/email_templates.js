@@ -87,8 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (response.ok) {
                     showFlashMessage(result.message || 'Upload successful!', 'success');
-                    uploadForm.reset(); // Clear the form
-                    loadTemplates(); // Refresh the list
+                    uploadForm.reset();
+                    fileNameDisplay.textContent = 'No file chosen';
+                    uploadBtn.innerHTML = '<i class="bi bi-upload"></i><span>Upload</span>';
+                    loadTemplates();
                 } else {
                     throw new Error(result.error || 'An unknown error occurred.');
                 }
@@ -96,8 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Upload error:', error);
                 showFlashMessage(`Upload failed: ${error.message}`, 'danger');
             } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Upload';
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="bi bi-upload"></i><span>Upload</span>';
             }
         });
     }
@@ -203,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Helper function to escape HTML to prevent XSS
 function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
     return str.replace(/[&<>"']/g, function(match) {
         return {
             '&': '&amp;',

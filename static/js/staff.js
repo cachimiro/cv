@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!staffListDiv) return;
 
         if (staffList.length === 0) {
-            staffListDiv.innerHTML = '<p>No staff members found. Add one using the form.</p>';
+            staffListDiv.innerHTML = '<div class="empty-state"><p>No staff members found. Add one using the form.</p></div>';
             return;
         }
 
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Actions</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <tr>
                     <td>${escapeHTML(staff.staff_name)}</td>
                     <td>${escapeHTML(staff.staff_email)}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-danger btn-sm delete-staff-btn" data-id="${staff.id}" title="Delete">&#128465;</button>
+                    <td class="action-buttons text-right">
+                        <button class="btn btn-danger btn-sm delete-staff-btn" data-id="${staff.id}" title="Delete"><i class="bi bi-trash-fill"></i></button>
                     </td>
                 </tr>
             `;
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const email = staffEmailInput.value.trim();
 
         if (!name || !email) {
-            alert('Please provide both name and email.');
+            showFlashMessage('Please provide both name and email.', 'warning');
             return;
         }
 
@@ -82,28 +82,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(result.error || 'Failed to add staff member.');
             }
 
-            // alert('Staff member added successfully!'); // Or use a more subtle notification
+            showFlashMessage('Staff member added successfully!', 'success');
             addStaffForm.reset(); // Clear the form
             fetchStaff(); // Refresh the list
         } catch (error) {
             console.error('Error adding staff:', error);
-            alert(`Error: ${error.message}`);
+            showFlashMessage(`Error: ${error.message}`, 'danger');
         }
     }
 
     async function handleDeleteStaff(event) {
-        const staffId = event.target.dataset.id;
+        const staffId = event.target.closest('button').dataset.id;
         const modal = document.getElementById('delete-confirm-modal');
         const confirmBtn = document.getElementById('confirm-delete-btn');
         const cancelBtn = document.getElementById('cancel-delete-btn');
         const closeModalBtn = document.getElementById('close-confirm-modal');
 
         const openModal = () => modal.style.display = 'block';
-        const closeModal = () => modal.style.display = 'none';
+        const closeModal = () => {
+            modal.style.display = 'none';
+            confirmBtn.onclick = null; // Clean up listener
+        };
 
         openModal();
 
-        const confirmHandler = async () => {
+        confirmBtn.onclick = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/staff/${staffId}`, {
                     method: 'DELETE'
@@ -122,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
 
-        confirmBtn.onclick = confirmHandler;
         cancelBtn.onclick = closeModal;
         closeModalBtn.onclick = closeModal;
         window.onclick = (event) => {

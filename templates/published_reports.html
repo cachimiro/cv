@@ -51,6 +51,37 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Report Modal -->
+<div id="edit-report-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Published Report</h3>
+            <button id="close-edit-modal" class="close-btn">&times;</button>
+        </div>
+        <form id="edit-report-form">
+            <div class="modal-body">
+                <input type="hidden" id="edit-report-id">
+                <div class="form-group">
+                    <label for="edit-link">Link</label>
+                    <input type="url" class="form-control" id="edit-link" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-article">Article</label>
+                    <textarea class="form-control" id="edit-article" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-date">Date of Publish</label>
+                    <input type="date" class="form-control" id="edit-date" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}

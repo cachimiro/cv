@@ -495,6 +495,43 @@ def add_published_report():
 
     return jsonify({"message": "Published report added successfully", "id": new_id}), 201
 
+@app.route('/api/published-reports/<int:report_id>', methods=['GET', 'PUT', 'DELETE'])
+@login_required
+def published_report(report_id):
+    conn = database.get_db_connection()
+    if request.method == 'GET':
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports WHERE id = ?", (report_id,))
+        report = cursor.fetchone()
+        conn.close()
+        if report:
+            return jsonify(dict(report))
+        else:
+            return jsonify({"error": "Report not found"}), 404
+
+    if request.method == 'PUT':
+        data = request.get_json()
+        link = data.get('link')
+        article = data.get('article')
+        date_of_publish = data.get('date_of_publish')
+
+        if not link or not article or not date_of_publish:
+            return jsonify({"error": "All fields are required"}), 400
+
+        cursor = conn.cursor()
+        cursor.execute("UPDATE published_reports SET link = ?, article = ?, date_of_publish = ? WHERE id = ?",
+                       (link, article, date_of_publish, report_id))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Report updated successfully"})
+
+    if request.method == 'DELETE':
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM published_reports WHERE id = ?", (report_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Report deleted successfully"})
+
 @app.route('/api/external/published-reports', methods=['POST'])
 @require_api_key
 def add_external_published_report():

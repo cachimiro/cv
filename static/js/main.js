@@ -88,6 +88,8 @@ function initApp() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', initApp);
+
 
 // --- Core Functions ---
 
@@ -158,49 +160,6 @@ function renderUploadsList(uploads) {
         });
     });
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    initApp();
-
-    const uploadSearchInput = document.getElementById('upload-search');
-    if (uploadSearchInput) {
-        uploadSearchInput.addEventListener('input', function() {
-            loadUploads(this.value);
-        });
-    }
-
-    // Password visibility toggle
-    const togglePassword = document.querySelector('.toggle-password');
-    if (togglePassword) {
-        togglePassword.addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const icon = this;
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('bi-eye-slash-fill');
-                icon.classList.add('bi-eye-fill');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('bi-eye-fill');
-                icon.classList.add('bi-eye-slash-fill');
-            }
-        });
-    }
-
-    // Login form submission with loading state
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function() {
-            const loginButton = document.getElementById('login-button');
-            const btnText = loginButton.querySelector('.btn-text');
-            const btnSpinner = loginButton.querySelector('.btn-spinner');
-
-            loginButton.disabled = true;
-            btnText.style.display = 'none';
-            btnSpinner.style.display = 'inline-block';
-        });
-    }
-});
 
 // --- CSV Import Functions ---
 function openMappingModal() {
@@ -489,38 +448,3 @@ function escapeHTML(str) {
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[match]));
 }
-
-// --- Login Page Interactivity ---
-document.addEventListener('DOMContentLoaded', function() {
-    // Password visibility toggle
-    const togglePassword = document.querySelector('.toggle-password');
-    if (togglePassword) {
-        togglePassword.addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const icon = this;
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('bi-eye-slash-fill');
-                icon.classList.add('bi-eye-fill');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('bi-eye-fill');
-                icon.classList.add('bi-eye-slash-fill');
-            }
-        });
-    }
-
-    // Login form submission with loading state
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function() {
-            const loginButton = document.getElementById('login-button');
-            const btnText = loginButton.querySelector('.btn-text');
-            const btnSpinner = loginButton.querySelector('.btn-spinner');
-
-            loginButton.disabled = true;
-            btnText.style.display = 'none';
-            btnSpinner.style.display = 'inline-block';
-        });
-    }
-});

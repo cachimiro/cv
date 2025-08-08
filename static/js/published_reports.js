@@ -51,27 +51,114 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const table = document.createElement('table');
             table.className = 'companies-table';
-            let rows = reports.map(r => `
-                <tr>
-                    <td><a href="${r.link}" target="_blank" rel="noopener">${escapeHTML(r.link)}</a></td>
-                    <td>${escapeHTML(r.article)}</td>
-                    <td class="text-right">${r.date_of_publish}</td>
-                </tr>
-            `).join('');
             table.innerHTML = `
                 <thead>
                     <tr>
                         <th>Link</th>
                         <th>Article</th>
-                        <th class="text-right">Published On</th>
+                        <th>Published On</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>${rows}</tbody>
+                <tbody>
+                </tbody>
             `;
+            const tbody = table.querySelector('tbody');
+            reports.forEach(r => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><a href="${r.link}" target="_blank" rel="noopener">${escapeHTML(r.link)}</a></td>
+                    <td>${escapeHTML(r.article)}</td>
+                    <td>${r.date_of_publish}</td>
+                    <td class="action-buttons text-right">
+                        <button class="btn btn-secondary btn-sm edit-report-btn" data-id="${r.id}">Edit</button>
+                        <button class="btn btn-danger btn-sm delete-report-btn" data-id="${r.id}">Delete</button>
+                    </td>
+                `;
+            });
             tableArea.innerHTML = '';
             tableArea.appendChild(table);
+
+            // Add event listeners for the new buttons
+            table.querySelectorAll('.edit-report-btn').forEach(btn => {
+                btn.addEventListener('click', handleEditReport);
+            });
+            table.querySelectorAll('.delete-report-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteReport);
+            });
         } catch (error) {
             tableArea.innerHTML = '<div class="empty-state"><p>Error loading reports.</p></div>';
+        }
+    }
+
+    function handleEditReport(event) {
+        const reportId = event.target.dataset.id;
+        const modal = document.getElementById('edit-report-modal');
+        const form = document.getElementById('edit-report-form');
+        const reportIdField = document.getElementById('edit-report-id');
+        const linkField = document.getElementById('edit-link');
+        const articleField = document.getElementById('edit-article');
+        const dateField = document.getElementById('edit-date');
+
+        // Fetch the report data and populate the form
+        fetch(`/api/published-reports/${reportId}`)
+            .then(response => response.json())
+            .then(report => {
+                reportIdField.value = report.id;
+                linkField.value = report.link;
+                articleField.value = report.article;
+                dateField.value = report.date_of_publish;
+                modal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching report for editing:', error);
+                showFlashMessage('Could not load report data.', 'danger');
+            });
+
+        const closeModal = () => modal.style.display = 'none';
+        document.getElementById('close-edit-modal').onclick = closeModal;
+        document.getElementById('cancel-edit-btn').onclick = closeModal;
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const updatedReport = {
+                link: linkField.value,
+                article: articleField.value,
+                date_of_publish: dateField.value
+            };
+
+            try {
+                const response = await fetch(`/api/published-reports/${reportId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedReport)
+                });
+                if (!response.ok) throw new Error('Failed to save changes.');
+                const result = await response.json();
+                showFlashMessage(result.message || 'Report updated successfully!', 'success');
+                closeModal();
+                loadReports();
+            } catch (error) {
+                showFlashMessage(`Error: ${error.message}`, 'danger');
+            }
+        };
+    }
+
+    function handleDeleteReport(event) {
+        const reportId = event.target.dataset.id;
+        if (confirm('Are you sure you want to delete this report?')) {
+            fetch(`/api/published-reports/${reportId}`, { method: 'DELETE' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to delete report.');
+                    return response.json();
+                })
+                .then(result => {
+                    showFlashMessage(result.message || 'Report deleted.', 'success');
+                    loadReports();
+                })
+                .catch(error => {
+                    showFlashMessage(`Error: ${error.message}`, 'danger');
+                });
         }
     }
 
