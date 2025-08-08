@@ -9,33 +9,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const outletNameChoices = new Choices(outletNameSelect, {
         removeItemButton: true,
-        searchResultLimit: 10,
-        searchFn: async (search, recordCount, limit) => {
-            const uploadId = uploadIdSelect.value;
-            const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.map(item => ({ value: item, label: item }));
-        }
     });
     const cityChoices = new Choices(citySelect, {
         removeItemButton: true,
-        searchResultLimit: 10,
-        searchFn: async (search, recordCount, limit) => {
-            const uploadId = uploadIdSelect.value;
-            const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.map(item => ({ value: item, label: item }));
-        }
     });
     const editOutletNameChoices = new Choices(editOutletNameSelect, {
         removeItemButton: true,
-        searchResultLimit: 10,
     });
     const editCityChoices = new Choices(editCitySelect, {
         removeItemButton: true,
-        searchResultLimit: 10,
     });
 
 
@@ -189,6 +171,54 @@ document.addEventListener('DOMContentLoaded', function() {
         const uploadId = this.value;
         loadOutlets(uploadId);
         loadCities(uploadId);
+    });
+
+    outletNameSelect.addEventListener('search', async function(event) {
+        const search = event.detail.value;
+        const uploadId = uploadIdSelect.value;
+        if (search) {
+            const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const choices = data.map(item => ({ value: item, label: item }));
+            outletNameChoices.setChoices(choices, 'value', 'label', false);
+        }
+    });
+
+    citySelect.addEventListener('search', async function(event) {
+        const search = event.detail.value;
+        const uploadId = uploadIdSelect.value;
+        if (search) {
+            const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const choices = data.map(item => ({ value: item, label: item }));
+            cityChoices.setChoices(choices, 'value', 'label', false);
+        }
+    });
+
+    editOutletNameSelect.addEventListener('search', async function(event) {
+        const search = event.detail.value;
+        const uploadId = uploadIdSelect.value;
+        if (search) {
+            const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const choices = data.map(item => ({ value: item, label: item }));
+            editOutletNameChoices.setChoices(choices, 'value', 'label', false);
+        }
+    });
+
+    editCitySelect.addEventListener('search', async function(event) {
+        const search = event.detail.value;
+        const uploadId = uploadIdSelect.value;
+        if (search) {
+            const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const choices = data.map(item => ({ value: item, label: item }));
+            editCityChoices.setChoices(choices, 'value', 'label', false);
+        }
     });
 
     const modal = document.getElementById('edit-modal');
