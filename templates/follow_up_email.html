@@ -60,7 +60,10 @@
     </div>
 
     <div class="staff-list-container">
-        <h3>Existing Follow Up Emails</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Existing Follow Up Emails</h3>
+            <button id="send-all-to-webhook-btn" class="btn btn-info"><i class="bi bi-send"></i> Send All to Webhook</button>
+        </div>
         <div id="follow-up-emails-list" class="data-table-container">
             <!-- Follow up email list will be loaded here by JavaScript -->
             <p>Loading follow up emails...</p>

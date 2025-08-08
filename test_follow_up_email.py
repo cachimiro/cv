@@ -1,6 +1,7 @@
 import unittest
 import os
 import json
+from unittest.mock import patch
 from app import app
 from database import create_tables, get_db_connection
 
@@ -121,6 +122,26 @@ class FollowUpEmailTestCase(unittest.TestCase):
         self.assertEqual(len(data), 2)
         self.assertIn('Test Outlet 1', data)
         self.assertIn('Test Outlet 2', data)
+
+    def test_send_all_follow_up_emails_to_webhook(self):
+        # Add a follow-up email
+        self.app.post('/api/follow-up-emails',
+                      data=json.dumps(dict(name='Test Subject',
+                                           content='Test Content',
+                                           outlet_name='Test Outlet',
+                                           city='Test City')),
+                      content_type='application/json')
+
+        # Mock the send_to_webhook function
+        with patch('database.send_to_webhook') as mock_send_to_webhook:
+            mock_send_to_webhook.return_value = 1  # Simulate one successful webhook call
+
+            # Call the send-all-to-webhook endpoint
+            response = self.app.post('/api/follow-up-emails/send-all-to-webhook')
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.data)
+            self.assertEqual(data['sent_count'], 1)
+            mock_send_to_webhook.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

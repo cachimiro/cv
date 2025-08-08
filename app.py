@@ -484,6 +484,38 @@ def follow_up_email_by_id(email_id):
         conn.close()
         return jsonify({"message": "Follow-up email deleted successfully"})
 
+@app.route('/api/follow-up-emails/send-all-to-webhook', methods=['POST'])
+@login_required
+def send_all_follow_up_emails_to_webhook():
+    """
+    Fetches all follow-up emails and sends them to a webhook.
+    """
+    try:
+        conn = database.get_db_connection()
+        emails = conn.execute('SELECT id, name, content, outlet_name, city FROM follow_up_emails').fetchall()
+        conn.close()
+
+        payload = {
+            "follow_up_emails": [dict(row) for row in emails]
+        }
+
+        if not payload["follow_up_emails"]:
+            return jsonify({"message": "No follow-up emails to send."}), 200
+
+        success_count = database.send_to_webhook(payload)
+
+        if success_count > 0:
+            return jsonify({
+                "message": f"Successfully sent {len(emails)} follow-up emails to {success_count} webhook(s).",
+                "sent_count": len(emails)
+            }), 200
+        else:
+            return jsonify({"error": "Failed to send follow-up emails to any webhooks."}), 500
+
+    except Exception as e:
+        print(f"Error in send_all_follow_up_emails_to_webhook: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+
 # --- Published Reports API Endpoints ---
 @app.route('/api/published-reports', methods=['GET'])
 @login_required

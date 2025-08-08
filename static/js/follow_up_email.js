@@ -180,6 +180,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const sendAllToWebhookBtn = document.getElementById('send-all-to-webhook-btn');
+
+    if (sendAllToWebhookBtn) {
+        sendAllToWebhookBtn.addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to send all follow-up emails to the external webhook?')) {
+                return;
+            }
+
+            const originalButtonText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+
+            try {
+                const response = await fetch('/api/follow-up-emails/send-all-to-webhook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showFlashMessage(result.message || 'Data sent successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'An unknown error occurred.');
+                }
+            } catch (error) {
+                console.error('Webhook send error:', error);
+                showFlashMessage(`Failed to send data: ${error.message}`, 'danger');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = originalButtonText;
+            }
+        });
+    }
+
     // Initial load of follow-up emails
     loadFollowUpEmails();
     loadOutlets();
