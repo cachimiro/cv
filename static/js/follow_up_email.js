@@ -102,15 +102,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const tbody = table.querySelector('tbody');
             emails.forEach(email => {
                 const row = tbody.insertRow();
+                row.className = 'main-row';
+                const outletNames = JSON.parse(email.outlet_name || '[]');
+                const cities = JSON.parse(email.city || '[]');
+
                 row.innerHTML = `
-                    <td>${escapeHTML(email.name)}</td>
-                    <td>${escapeHTML(JSON.parse(email.outlet_name || '[]').join(', '))}</td>
-                    <td>${escapeHTML(JSON.parse(email.city || '[]').join(', '))}</td>
-                    <td><pre class="template-content">${escapeHTML(email.content.substring(0, 100))}${email.content.length > 100 ? '...' : ''}</pre></td>
+                    <td><button class="expand-btn"><i class="bi bi-chevron-right"></i></button> ${escapeHTML(email.name)}</td>
+                    <td>${outletNames.length} outlets</td>
+                    <td>${cities.length} cities</td>
+                    <td><pre class="template-content">${escapeHTML(email.content.substring(0, 50))}${email.content.length > 50 ? '...' : ''}</pre></td>
                     <td class="action-buttons">
                         <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}"><i class="bi bi-pencil"></i> Edit</button>
                         <button class="btn btn-danger btn-sm btn-delete" data-id="${email.id}"><i class="bi bi-trash"></i> Delete</button>
                     </td>
+                `;
+
+                const expandableRow = tbody.insertRow();
+                expandableRow.className = 'expandable-row';
+                expandableRow.style.display = 'none';
+                const expandableCell = expandableRow.insertCell();
+                expandableCell.colSpan = 5;
+                expandableCell.innerHTML = `
+                    <div class="expanded-content">
+                        <h5>Selected Outlets</h5>
+                        <div class="tag-container">${outletNames.map(o => `<span class="tag">${escapeHTML(o)}</span>`).join('')}</div>
+                        <hr>
+                        <h5>Selected Cities</h5>
+                        <div class="tag-container">${cities.map(c => `<span class="tag">${escapeHTML(c)}</span>`).join('')}</div>
+                    </div>
                 `;
             });
             followUpEmailsList.appendChild(table);
@@ -285,6 +304,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    document.getElementById('search-selected-outlets').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        const choices = outletNameChoices.choiceList.element.querySelectorAll('.choices__item');
+        choices.forEach(choice => {
+            const text = choice.textContent.toLowerCase();
+            if (text.includes(search)) {
+                choice.style.display = 'block';
+            } else {
+                choice.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('search-selected-cities').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        const choices = cityChoices.choiceList.element.querySelectorAll('.choices__item');
+        choices.forEach(choice => {
+            const text = choice.textContent.toLowerCase();
+            if (text.includes(search)) {
+                choice.style.display = 'block';
+            } else {
+                choice.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('edit-search-selected-outlets').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        const choices = editOutletNameChoices.choiceList.element.querySelectorAll('.choices__item');
+        choices.forEach(choice => {
+            const text = choice.textContent.toLowerCase();
+            if (text.includes(search)) {
+                choice.style.display = 'block';
+            } else {
+                choice.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('edit-search-selected-cities').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        const choices = editCityChoices.choiceList.element.querySelectorAll('.choices__item');
+        choices.forEach(choice => {
+            const text = choice.textContent.toLowerCase();
+            if (text.includes(search)) {
+                choice.style.display = 'block';
+            } else {
+                choice.style.display = 'none';
+            }
+        });
+    });
+
     const modal = document.getElementById('edit-modal');
     const closeButtons = modal.querySelectorAll('.close-btn');
     const editForm = document.getElementById('edit-form');
@@ -337,6 +408,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event delegation for view and delete buttons
     followUpEmailsList.addEventListener('click', function(event) {
         const target = event.target;
+        const expandBtn = target.closest('.expand-btn');
+
+        if (expandBtn) {
+            const row = expandBtn.closest('.main-row');
+            const expandableRow = row.nextElementSibling;
+            const icon = expandBtn.querySelector('i');
+
+            if (expandableRow.style.display === 'none') {
+                expandableRow.style.display = 'table-row';
+                icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+            } else {
+                expandableRow.style.display = 'none';
+                icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+            }
+        }
+
         if (target.classList.contains('btn-delete')) {
             const emailId = target.dataset.id;
             deleteFollowUpEmail(emailId);
