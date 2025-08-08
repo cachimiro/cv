@@ -6,10 +6,9 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin:0; font-family:Inter,system-ui,Arial,sans-serif;
+    background:var(--bg); color:var(--text);
     line-height: 1.6;
-    color: #333;
-    background-color: #f4f7f6; /* Light grayish background */
     /* display: flex; flex-direction: column; min-height: 100vh; -- Old body structure */
 }
 
@@ -370,31 +369,32 @@ html, body {
 
 /* Headings (general) */
 h1, h2, h3 {
-    margin-bottom: 0.75rem;
-    color: #2c3e50;
+    margin: 0 0 12px;
+    font-size: 18px;
 }
 
 /* Buttons */
 .btn {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 1rem;
-    text-decoration: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    border: none;
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid transparent;
+  font-weight:600;
+  cursor:pointer;
+  user-select:none;
+  transition: background-color 0.3s ease, transform 0.1s ease;
 }
-
-.btn-primary {
-    background-color: #3498db; /* Blue */
-    color: #fff;
+.btn-primary{
+    background:var(--primary);
+    color:#fff
 }
-
-.btn-primary:hover {
-    background-color: #2980b9; /* Darker Blue */
+.btn-primary:hover{
+    background:var(--primary-700)
 }
-
+.btn-primary:disabled{
+    opacity:.5;
+    cursor:not-allowed
+}
 .btn-danger {
     background-color: #e74c3c; /* Red */
     color: #fff;
@@ -402,7 +402,6 @@ h1, h2, h3 {
 .btn-danger:hover {
     background-color: #c0392b; /* Darker Red */
 }
-
 .btn-secondary {
     background-color: #95a5a6; /* Grey */
     color: #fff;
@@ -415,27 +414,37 @@ h1, h2, h3 {
 /* Table Styling */
 .companies-table { /* More specific selector */
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-top: 20px;
-    background-color: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background-color: var(--card);
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
 }
 
-th, td {
-    padding: 12px 15px;
+.companies-table th, .companies-table td {
+    padding: 12px 14px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
 }
 
 .companies-table th {
-    background-color: #e9ecef; /* Light grey table header */
-    color: #495057;
-    font-weight: 600; /* Slightly bolder */
-    white-space: nowrap; /* Prevent header text wrapping */
+    background-color: #f9fafb;
+    font-weight: 700; /* Bolder */
+    color: #374151;
+    position: sticky;
+    top: 0;
 }
 
-.companies-table tr:hover {
-    background-color: #f8f9fa; /* Lighter hover */
+.companies-table tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.companies-table tr:hover td {
+    background-color: #fafafa;
 }
 
 .companies-table td .btn { /* Smaller buttons in table */
@@ -446,6 +455,12 @@ th, td {
 /* Forms */
 .form-group {
     margin-bottom: 1.25rem; /* Slightly more space */
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-group:last-child {
+    border-bottom: none;
 }
 
 .form-group label {
@@ -458,16 +473,22 @@ th, td {
 .form-group input[type="text"],
 .form-group input[type="url"],
 .form-group input[type="email"], /* if we add email later */
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+    color: var(--text);
 }
-.form-group input:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus);
 }
 
 .form-actions {
@@ -633,20 +654,23 @@ th, td {
 /* Staff Management Page Layout */
 .staff-management-container {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Form on left, list on right */
-    gap: 2rem; /* Space between the two columns */
+    grid-template-columns: 360px 1fr; /* Form on left, list on right */
+    gap: 24px; /* Space between the two columns */
+    align-items: start; /* Align items to the top */
 }
 .add-staff-form-container, .staff-list-container {
-    background-color: #f8f9fa; /* Light grey background for containers */
-    padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
 }
 .add-staff-form-container h3, .staff-list-container h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.5rem;
+    margin: 0 0 12px;
+    font-size: 18px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 

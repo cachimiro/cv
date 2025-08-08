@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${escapeHTML(email.city || '')}</td>
                     <td><pre class="template-content">${escapeHTML(email.content.substring(0, 100))}${email.content.length > 100 ? '...' : ''}</pre></td>
                     <td class="action-buttons">
-                        <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}">Edit</button>
-                        <button class="btn btn-danger btn-sm btn-delete" data-id="${email.id}">Delete</button>
+                        <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}"><i class="bi bi-pencil"></i> Edit</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="${email.id}"><i class="bi bi-trash"></i> Delete</button>
                     </td>
                 `;
             });
