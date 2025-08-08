@@ -264,7 +264,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             const data = await response.json();
             const choices = data.map(item => ({ value: item, label: item }));
-            outletNameChoices.setChoices(choices, 'value', 'label', true);
+            outletNameChoices.clearChoices();
+            outletNameChoices.setChoices(choices, 'value', 'label', false);
         }
     });
 
@@ -276,7 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             const data = await response.json();
             const choices = data.map(item => ({ value: item, label: item }));
-            cityChoices.setChoices(choices, 'value', 'label', true);
+            cityChoices.clearChoices();
+            cityChoices.setChoices(choices, 'value', 'label', false);
         }
     });
 
@@ -288,7 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             const data = await response.json();
             const choices = data.map(item => ({ value: item, label: item }));
-            editOutletNameChoices.setChoices(choices, 'value', 'label', true);
+            editOutletNameChoices.clearChoices();
+            editOutletNameChoices.setChoices(choices, 'value', 'label', false);
         }
     });
 
@@ -300,7 +303,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             const data = await response.json();
             const choices = data.map(item => ({ value: item, label: item }));
-            editCityChoices.setChoices(choices, 'value', 'label', true);
+            editCityChoices.clearChoices();
+            editCityChoices.setChoices(choices, 'value', 'label', false);
         }
     });
 
