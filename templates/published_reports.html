@@ -114,6 +114,7 @@ async function loadReports() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadReports);
+setInterval(loadReports, 5000);
+loadReports(); // Initial load
 </script>
 {% endblock %}
