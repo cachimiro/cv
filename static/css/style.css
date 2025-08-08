@@ -45,20 +45,81 @@ html, body {
 }
 
 .global-top-bar {
-    background-color: #ffffff; /* White top bar */
-    border-bottom: 1px solid #e0e0e0; /* Subtle border */
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb; /* Neutral border */
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 32px; /* Generous gutters */
-    height: 56px;
-    min-height: 56px; /* Prevent shrinking */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    /* z-index: 100; -- Not strictly needed if main-content-wrapper is separate */
+    padding: 0 24px;
+    height: 64px; /* Consistent height */
+    min-height: 64px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
+.top-bar-left, .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.top-bar-page-title h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.top-bar-action-btn {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.top-bar-action-btn:hover {
+    background-color: #2563eb;
+}
+.top-bar-action-btn i {
+    font-size: 0.9rem;
+}
+
+.icon-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.icon-btn:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+.icon-btn i {
+    font-size: 1.2rem;
+}
+
+
 .main-canvas {
-    flex-grow: 1; /* Takes up remaining space in main-content-wrapper */
+    flex-grow: 1;
     background-color: #ffffff; /* White background for canvas */
     overflow-y: auto; /* Allow vertical scrolling for canvas content */
     padding: 32px; /* Generous gutters */
@@ -85,80 +146,6 @@ html, body {
 /* Flash messages container - should be inside main-canvas */
 .flash-messages-container {
     margin-bottom: 1.5rem; /* Space below flash messages */
-}
-
-/* --- Global Top Bar Components --- */
-.global-top-bar {
-    /* ... existing styles ... */
-    font-size: 0.9rem; /* Slightly smaller base font for top bar */
-}
-
-.top-bar-left-zone,
-.top-bar-center-zone,
-.top-bar-right-zone {
-    display: flex;
-    align-items: center;
-}
-
-.top-bar-left-zone {
-    flex-basis: 25%; /* Approx 25% */
-    justify-content: flex-start;
-}
-.persona-label {
-    margin-right: 8px;
-    color: #555;
-    font-size: 0.85rem;
-}
-.persona-dropdown {
-    padding: 4px 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #fff;
-    font-size: 0.85rem;
-    max-width: 150px; /* Prevent it from getting too wide */
-}
-
-.top-bar-center-zone {
-    flex-basis: 20%; /* Approx 20% */
-    justify-content: center;
-}
-.device-icon {
-    margin: 0 8px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    color: #777;
-    font-size: 1.2rem; /* Adjust for better visual weight of Unicode chars */
-}
-.device-icon.active {
-    background-color: #e0e0e0; /* Highlight for active device */
-    color: #333;
-}
-
-.top-bar-right-zone {
-    flex-basis: 55%; /* Approx 55% */
-    justify-content: flex-end;
-}
-.page-title-placeholder {
-    margin-right: 16px;
-    color: #777; /* Subtle page title */
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.action-button-dark {
-    background-color: #2c3e50; /* Dark background */
-    color: #fff;
-    padding: 6px 12px; /* Compact action button */
-    font-size: 0.85rem;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-.action-button-dark:hover {
-    background-color: #34495e; /* Slightly lighter on hover */
 }
 
 
@@ -893,47 +880,149 @@ th, td {
 }
 
 /* Authentication Forms */
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: calc(100vh - 56px); /* Full height minus header */
+    padding: 2rem 1rem;
+}
+
 .auth-container {
-    max-width: 450px;
-    margin: 2rem auto;
-    padding: 2rem;
+    max-width: 420px;
+    width: 100%;
+    margin: 0;
+    padding: 2.5rem;
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 12px; /* Softer corners */
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border: 1px solid #e5e7eb;
 }
 
 .auth-container h2 {
     text-align: center;
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    color: #111827;
+    font-size: 1.75rem;
 }
 
-.auth-form .form-control { /* More specific selector for inputs in auth forms */
+.auth-subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600; /* Bolder labels */
+    color: #374151;
+}
+
+.auth-form .form-control {
     width: 100%;
-    padding: 12px; /* Slightly larger padding for auth inputs */
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 12px 16px; /* More padding inside */
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     font-size: 1rem;
-    margin-bottom: 0.5rem; /* Space below input before next label/input */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .auth-form .form-control:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    border-color: #3b82f6; /* Blue accent */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+.password-wrapper {
+    position: relative;
+}
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6b7280;
 }
 
-.auth-form .btn-block { /* Button that takes full width */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+.form-group-inline {
+    display: flex;
+    align-items: center;
+}
+.form-group-inline input[type="checkbox"] {
+    margin-right: 8px;
+}
+.form-group-inline label {
+    margin: 0;
+    font-weight: 500;
+    color: #374151;
+}
+.forgot-password-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+}
+.forgot-password-link:hover {
+    text-decoration: underline;
+}
+
+
+.auth-form .btn-block {
     width: 100%;
     padding: 12px;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #3b82f6;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
+.auth-form .btn-block:hover {
+    background-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+.auth-form .btn-block:active {
+    background-color: #1d4ed8;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: #6b7280;
+}
+.auth-footer a {
+    color: #3b82f6;
+    font-weight: 600;
+    text-decoration: none;
+}
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
 
 /* Alert Messages */
 .alert {
-    padding: 1rem;
-    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    margin-bottom: 1.5rem;
     border: 1px solid transparent;
-    border-radius: 4px;
-    font-size: 0.95rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.alert-icon {
+    margin-right: 0.75rem;
+    font-size: 1.2rem;
 }
 
 .alert-success {

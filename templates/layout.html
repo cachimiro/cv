@@ -16,23 +16,24 @@
     <div class="main-content-wrapper">
         <!-- Global Top Bar -->
         <header class="global-top-bar">
-            <div class="top-bar-left-zone">
-                <button id="mobile-nav-toggle" class="mobile-nav-toggle-btn">&#9776;</button>
-                <span class="persona-label">Persona:</span>
-                <select class="persona-dropdown" name="persona">
-                    <option value="default">Default</option>
-                    <!-- Add other personas later if needed -->
-                </select>
+            <div class="top-bar-left">
+                <button id="mobile-nav-toggle" class="mobile-nav-toggle-btn">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="top-bar-page-title">
+                    <h3>{% block page_title %}Dashboard{% endblock %}</h3>
+                </div>
             </div>
-            <div class="top-bar-center-zone">
-                <!-- Using Unicode characters as placeholders for device icons -->
-                <span class="device-icon active">&#9074;</span> <!-- Desktop icon placeholder -->
-                <span class="device-icon">&#57509;</span> <!-- Tablet icon placeholder -->
-                <span class="device-icon">&#57444;</span> <!-- Phone icon placeholder -->
-            </div>
-            <div class="top-bar-right-zone">
-                <span class="page-title-placeholder">{% block page_title %}Dashboard{% endblock %}</span>
-                <button class="action-button-dark">Action</button>
+            <div class="top-bar-right">
+                <button class="top-bar-action-btn">
+                     <i class="bi bi-plus-lg"></i>
+                    <span>Add New</span>
+                </button>
+                <div class="icon-group">
+                    <button class="icon-btn"><i class="bi bi-search"></i></button>
+                    <button class="icon-btn"><i class="bi bi-bell-fill"></i></button>
+                </div>
+                 <!-- Profile Dropdown would go here, but for now, we link to the sidebar's logout -->
             </div>
         </header>
 
