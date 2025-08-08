@@ -164,6 +164,15 @@ class FollowUpEmailTestCase(unittest.TestCase):
             self.assertEqual(data['sent_count'], 1)
             mock_send_to_webhook.assert_called_once()
 
+            # Test with valid lowercase API key
+            mock_send_to_webhook.reset_mock()
+            response = self.app.post('/api/external/send-follow-up-data',
+                                     headers={'x-api-key': 'default_test_key_12345'})
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.data)
+            self.assertEqual(data['sent_count'], 1)
+            mock_send_to_webhook.assert_called_once()
+
             # Test with invalid API key
             mock_send_to_webhook.reset_mock()
             response = self.app.post('/api/external/send-follow-up-data',
