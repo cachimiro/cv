@@ -406,7 +406,7 @@ def email_template(template_id):
 def get_follow_up_emails():
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, content FROM follow_up_emails")
+    cursor.execute("SELECT id, name, content, outlet_name, city FROM follow_up_emails")
     emails = cursor.fetchall()
     conn.close()
     return jsonify([dict(row) for row in emails])
@@ -417,13 +417,18 @@ def add_follow_up_email():
     data = request.get_json()
     name = data.get('name')
     content = data.get('content')
+    outlet_name = data.get('outlet_name')
+    city = data.get('city')
 
     if not name or not content:
         return jsonify({"error": "Name and content are required"}), 400
 
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO follow_up_emails (name, content) VALUES (?, ?)", (name, content))
+    cursor.execute(
+        "INSERT INTO follow_up_emails (name, content, outlet_name, city) VALUES (?, ?, ?, ?)",
+        (name, content, outlet_name, city)
+    )
     conn.commit()
     new_id = cursor.lastrowid
     conn.close()
@@ -437,7 +442,7 @@ def follow_up_email_by_id(email_id):
     cursor = conn.cursor()
 
     if request.method == 'GET':
-        cursor.execute("SELECT id, name, content FROM follow_up_emails WHERE id = ?", (email_id,))
+        cursor.execute("SELECT id, name, content, outlet_name, city FROM follow_up_emails WHERE id = ?", (email_id,))
         email = cursor.fetchone()
         conn.close()
         if email:
@@ -449,11 +454,16 @@ def follow_up_email_by_id(email_id):
         data = request.get_json()
         name = data.get('name')
         content = data.get('content')
+        outlet_name = data.get('outlet_name')
+        city = data.get('city')
 
         if not name or not content:
             return jsonify({"error": "Name and content are required"}), 400
 
-        cursor.execute("UPDATE follow_up_emails SET name = ?, content = ? WHERE id = ?", (name, content, email_id))
+        cursor.execute(
+            "UPDATE follow_up_emails SET name = ?, content = ?, outlet_name = ?, city = ? WHERE id = ?",
+            (name, content, outlet_name, city, email_id)
+        )
         conn.commit()
         conn.close()
         return jsonify({"message": "Follow-up email updated successfully"})
@@ -679,6 +689,28 @@ def get_all_outlet_names():
         return jsonify(outlet_names), 200
     except Exception as e:
         print(f"Error fetching all outlet names: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+@app.route('/api/cities/all', methods=['GET'])
+@login_required
+def get_all_cities():
+    """
+    Fetches a distinct list of all cities from both journalists and media_titles tables.
+    """
+    try:
+        conn = database.get_db_connection()
+        query = """
+            SELECT DISTINCT City FROM journalists WHERE City IS NOT NULL AND City != ''
+            UNION
+            SELECT DISTINCT City FROM media_titles WHERE City IS NOT NULL AND City != ''
+            ORDER BY City
+        """
+        cities = conn.execute(query).fetchall()
+        conn.close()
+        city_names = [row['City'] for row in cities]
+        return jsonify(city_names), 200
+    except Exception as e:
+        print(f"Error fetching all cities: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/outlets/search')

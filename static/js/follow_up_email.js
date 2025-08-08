@@ -1,6 +1,47 @@
 document.addEventListener('DOMContentLoaded', function() {
     const addFollowUpForm = document.getElementById('add-follow-up-form');
     const followUpEmailsList = document.getElementById('follow-up-emails-list');
+    const outletNameSelect = document.getElementById('outlet_name');
+    const citySelect = document.getElementById('city');
+    const editOutletNameSelect = document.getElementById('edit-outlet_name');
+    const editCitySelect = document.getElementById('edit-city');
+
+    // Function to populate a select element
+    function populateSelect(selectElement, items, defaultOptionText) {
+        selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            selectElement.appendChild(option);
+        });
+    }
+
+    // Function to fetch and populate outlets
+    async function loadOutlets() {
+        try {
+            const response = await fetch('/api/outlets/all');
+            if (!response.ok) throw new Error('Failed to fetch outlets');
+            const outlets = await response.json();
+            populateSelect(outletNameSelect, outlets, 'Select an outlet');
+            populateSelect(editOutletNameSelect, outlets, 'Select an outlet');
+        } catch (error) {
+            console.error('Error loading outlets:', error);
+        }
+    }
+
+    // Function to fetch and populate cities
+    async function loadCities() {
+        try {
+            const response = await fetch('/api/cities/all');
+            if (!response.ok) throw new Error('Failed to fetch cities');
+            const cities = await response.json();
+            populateSelect(citySelect, cities, 'Select a city');
+            populateSelect(editCitySelect, cities, 'Select a city');
+        } catch (error) {
+            console.error('Error loading cities:', error);
+        }
+    }
 
     // Function to fetch and display follow-up emails
     async function loadFollowUpEmails() {
@@ -22,7 +63,9 @@ document.addEventListener('DOMContentLoaded', function() {
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>Name</th>
+                        <th>Subject Line</th>
+                        <th>Outlet Name</th>
+                        <th>City</th>
                         <th>Content</th>
                         <th>Actions</th>
                     </tr>
@@ -35,7 +78,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${escapeHTML(email.name)}</td>
-                    <td><pre class="template-content">${escapeHTML(email.content.substring(0, 150))}${email.content.length > 150 ? '...' : ''}</pre></td>
+                    <td>${escapeHTML(email.outlet_name || '')}</td>
+                    <td>${escapeHTML(email.city || '')}</td>
+                    <td><pre class="template-content">${escapeHTML(email.content.substring(0, 100))}${email.content.length > 100 ? '...' : ''}</pre></td>
                     <td class="action-buttons">
                         <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}">Edit</button>
                         <button class="btn btn-danger btn-sm btn-delete" data-id="${email.id}">Delete</button>
@@ -55,6 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
             const name = document.getElementById('name').value;
             const content = document.getElementById('content').value;
+            const outlet_name = document.getElementById('outlet_name').value;
+            const city = document.getElementById('city').value;
             const submitButton = addFollowUpForm.querySelector('button[type="submit"]');
 
             submitButton.disabled = true;
@@ -66,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, content })
+                    body: JSON.stringify({ name, content, outlet_name, city })
                 });
 
                 const result = await response.json();
@@ -90,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial load of follow-up emails
     loadFollowUpEmails();
+    loadOutlets();
+    loadCities();
 
     const modal = document.getElementById('edit-modal');
     const closeButtons = modal.querySelectorAll('.close-btn');
@@ -113,6 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = document.getElementById('edit-id').value;
         const name = document.getElementById('edit-name').value;
         const content = document.getElementById('edit-content').value;
+        const outlet_name = document.getElementById('edit-outlet_name').value;
+        const city = document.getElementById('edit-city').value;
 
         try {
             const response = await fetch(`/api/follow-up-email/${id}`, {
@@ -120,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name, content })
+                body: JSON.stringify({ name, content, outlet_name, city })
             });
 
             const result = await response.json();
@@ -163,6 +214,8 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.querySelector('#edit-id').value = email.id;
             modal.querySelector('#edit-name').value = email.name;
             modal.querySelector('#edit-content').value = email.content;
+            modal.querySelector('#edit-outlet_name').value = email.outlet_name || '';
+            modal.querySelector('#edit-city').value = email.city || '';
 
             modal.style.display = 'block';
         } catch (error) {

@@ -16,8 +16,20 @@
         <h3>Add New Follow Up Email</h3>
         <form id="add-follow-up-form">
             <div class="form-group">
-                <label for="name">Name</label>
+                <label for="name">Subject Line</label>
                 <input type="text" id="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="outlet_name">Outlet Name</label>
+                <select id="outlet_name" class="form-control">
+                    <option value="">Select an outlet</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="city">City</label>
+                <select id="city" class="form-control">
+                    <option value="">Select a city</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="content">Content</label>
@@ -49,8 +61,20 @@
             <div class="modal-body">
                 <input type="hidden" id="edit-id">
                 <div class="form-group">
-                    <label for="edit-name">Name</label>
+                    <label for="edit-name">Subject Line</label>
                     <input type="text" id="edit-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-outlet_name">Outlet Name</label>
+                    <select id="edit-outlet_name" class="form-control">
+                        <option value="">Select an outlet</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-city">City</label>
+                    <select id="edit-city" class="form-control">
+                        <option value="">Select a city</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="edit-content">Content</label>

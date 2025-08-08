@@ -148,9 +148,27 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS follow_up_emails (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            content TEXT NOT NULL
+            content TEXT NOT NULL,
+            outlet_name TEXT,
+            city TEXT
         )
     ''')
+
+    # Add outlet_name and city columns if they don't exist
+    try:
+        cursor.execute("ALTER TABLE follow_up_emails ADD COLUMN outlet_name TEXT")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
+    try:
+        cursor.execute("ALTER TABLE follow_up_emails ADD COLUMN city TEXT")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
 
     # Published Reports Table
     cursor.execute('''
