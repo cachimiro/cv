@@ -259,49 +259,89 @@ document.addEventListener('DOMContentLoaded', function() {
     outletNameSelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
+        console.log(`Searching for outlet: ${search}`);
         if (search) {
             const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
+            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
+            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            outletNameChoices.setChoices(choices, 'value', 'label', false);
+            console.log('Setting choices:', choices);
+            outletNameChoices.setChoices(choices, 'value', 'label', true);
         }
     });
 
     citySelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
+        console.log(`Searching for city: ${search}`);
         if (search) {
             const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
+            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
+            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            cityChoices.setChoices(choices, 'value', 'label', false);
+            console.log('Setting choices:', choices);
+            cityChoices.setChoices(choices, 'value', 'label', true);
         }
     });
 
     editOutletNameSelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
+        console.log(`Searching for edit outlet: ${search}`);
         if (search) {
             const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
+            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
+            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            editOutletNameChoices.setChoices(choices, 'value', 'label', false);
+            console.log('Setting choices:', choices);
+            editOutletNameChoices.setChoices(choices, 'value', 'label', true);
         }
     });
 
     editCitySelect.addEventListener('search', async function(event) {
         const search = event.detail.value;
         const uploadId = uploadIdSelect.value;
+        console.log(`Searching for edit city: ${search}`);
         if (search) {
             const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
+            console.log(`Fetching from URL: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
+            console.log('Received data:', data);
             const choices = data.map(item => ({ value: item, label: item }));
-            editCityChoices.setChoices(choices, 'value', 'label', false);
+            console.log('Setting choices:', choices);
+            editCityChoices.setChoices(choices, 'value', 'label', true);
         }
+    });
+
+    document.getElementById('show-more-outlets').addEventListener('click', function() {
+        const container = this.previousElementSibling;
+        container.classList.toggle('expanded');
+        this.textContent = container.classList.contains('expanded') ? 'Show Less' : 'Show More';
+    });
+
+    document.getElementById('show-more-cities').addEventListener('click', function() {
+        const container = this.previousElementSibling;
+        container.classList.toggle('expanded');
+        this.textContent = container.classList.contains('expanded') ? 'Show Less' : 'Show More';
+    });
+
+    document.getElementById('edit-show-more-outlets').addEventListener('click', function() {
+        const container = this.previousElementSibling;
+        container.classList.toggle('expanded');
+        this.textContent = container.classList.contains('expanded') ? 'Show Less' : 'Show More';
+    });
+
+    document.getElementById('edit-show-more-cities').addEventListener('click', function() {
+        const container = this.previousElementSibling;
+        container.classList.toggle('expanded');
+        this.textContent = container.classList.contains('expanded') ? 'Show Less' : 'Show More';
     });
 
     document.getElementById('search-selected-outlets').addEventListener('input', function() {

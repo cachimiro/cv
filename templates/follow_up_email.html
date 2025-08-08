@@ -26,22 +26,28 @@
                 <input type="text" id="name" class="form-control" required>
             </div>
             <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <label for="outlet_name">Outlet Name</label>
                     <button type="button" id="select-all-outlets" class="btn btn-secondary btn-sm">Select All</button>
                 </div>
                 <input type="text" id="search-selected-outlets" class="form-control" placeholder="Search selected outlets...">
-                <select id="outlet_name" class="form-control" multiple>
-                </select>
+                <div class="choices-container">
+                    <select id="outlet_name" class="form-control" multiple>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-link btn-sm btn-show-more" id="show-more-outlets">Show More</button>
             </div>
             <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                     <label for="city">City</label>
                     <button type="button" id="select-all-cities" class="btn btn-secondary btn-sm">Select All</button>
                 </div>
                 <input type="text" id="search-selected-cities" class="form-control" placeholder="Search selected cities...">
-                <select id="city" class="form-control" multiple>
-                </select>
+                <div class="choices-container">
+                    <select id="city" class="form-control" multiple>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-link btn-sm btn-show-more" id="show-more-cities">Show More</button>
             </div>
             <div class="form-group">
                 <label for="content">Content</label>
@@ -77,22 +83,28 @@
                     <input type="text" id="edit-name" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                         <label for="edit-outlet_name">Outlet Name</label>
                         <button type="button" id="edit-select-all-outlets" class="btn btn-secondary btn-sm">Select All</button>
                     </div>
                     <input type="text" id="edit-search-selected-outlets" class="form-control" placeholder="Search selected outlets...">
-                    <select id="edit-outlet_name" class="form-control" multiple>
-                    </select>
+                    <div class="choices-container">
+                        <select id="edit-outlet_name" class="form-control" multiple>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-link btn-sm btn-show-more" id="edit-show-more-outlets">Show More</button>
                 </div>
                 <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                         <label for="edit-city">City</label>
                         <button type="button" id="edit-select-all-cities" class="btn btn-secondary btn-sm">Select All</button>
                     </div>
                     <input type="text" id="edit-search-selected-cities" class="form-control" placeholder="Search selected cities...">
-                    <select id="edit-city" class="form-control" multiple>
-                    </select>
+                    <div class="choices-container">
+                        <select id="edit-city" class="form-control" multiple>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-link btn-sm btn-show-more" id="edit-show-more-cities">Show More</button>
                 </div>
                 <div class="form-group">
                     <label for="edit-content">Content</label>

@@ -515,14 +515,29 @@ h1, h2, h3 {
 .choices__list--multiple {
     column-count: 3;
     column-gap: 10px;
-    max-height: 150px;
-    overflow-y: auto;
     border: 1px solid var(--border);
     border-radius: 10px;
     font-size: 14px;
     outline: none;
     background: #fff;
     color: var(--text);
+}
+
+.choices-container {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-bottom: 5px;
+}
+
+.choices-container.expanded {
+    max-height: none;
+}
+
+.btn-show-more {
+    font-size: 0.875rem;
+    text-decoration: underline;
+    padding: 0;
+    color: var(--primary);
 }
 .form-group input:focus,
 .form-group textarea:focus,
