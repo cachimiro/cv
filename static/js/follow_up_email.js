@@ -5,39 +5,83 @@ document.addEventListener('DOMContentLoaded', function() {
     const citySelect = document.getElementById('city');
     const editOutletNameSelect = document.getElementById('edit-outlet_name');
     const editCitySelect = document.getElementById('edit-city');
+    const uploadIdSelect = document.getElementById('upload_id');
 
-    // Function to populate a select element
-    function populateSelect(selectElement, items, defaultOptionText) {
-        selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
-        items.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item;
-            option.textContent = item;
-            selectElement.appendChild(option);
-        });
+    const outletNameChoices = new Choices(outletNameSelect, {
+        removeItemButton: true,
+        searchResultLimit: 10,
+        searchFn: async (search, recordCount, limit) => {
+            const uploadId = uploadIdSelect.value;
+            const url = `/api/search/outletName?q=${search}&upload_id=${uploadId}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.map(item => ({ value: item, label: item }));
+        }
+    });
+    const cityChoices = new Choices(citySelect, {
+        removeItemButton: true,
+        searchResultLimit: 10,
+        searchFn: async (search, recordCount, limit) => {
+            const uploadId = uploadIdSelect.value;
+            const url = `/api/search/City?q=${search}&upload_id=${uploadId}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.map(item => ({ value: item, label: item }));
+        }
+    });
+    const editOutletNameChoices = new Choices(editOutletNameSelect, {
+        removeItemButton: true,
+        searchResultLimit: 10,
+    });
+    const editCityChoices = new Choices(editCitySelect, {
+        removeItemButton: true,
+        searchResultLimit: 10,
+    });
+
+
+    // Function to populate uploads
+    async function loadUploads() {
+        try {
+            const response = await fetch('/api/uploads');
+            if (!response.ok) throw new Error('Failed to fetch uploads');
+            const uploads = await response.json();
+            uploadIdSelect.innerHTML = '<option value="">Select a list</option>';
+            uploads.forEach(upload => {
+                const option = document.createElement('option');
+                option.value = upload.id;
+                option.textContent = upload.name;
+                uploadIdSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading uploads:', error);
+        }
     }
 
     // Function to fetch and populate outlets
-    async function loadOutlets() {
+    async function loadOutlets(uploadId) {
         try {
-            const response = await fetch('/api/outlets/all');
+            const url = uploadId ? `/api/outlets/all?upload_id=${uploadId}` : '/api/outlets/all';
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch outlets');
             const outlets = await response.json();
-            populateSelect(outletNameSelect, outlets, 'Select an outlet');
-            populateSelect(editOutletNameSelect, outlets, 'Select an outlet');
+            const choices = outlets.map(outlet => ({ value: outlet, label: outlet }));
+            outletNameChoices.setChoices(choices, 'value', 'label', true);
+            editOutletNameChoices.setChoices(choices, 'value', 'label', true);
         } catch (error) {
             console.error('Error loading outlets:', error);
         }
     }
 
     // Function to fetch and populate cities
-    async function loadCities() {
+    async function loadCities(uploadId) {
         try {
-            const response = await fetch('/api/cities/all');
+            const url = uploadId ? `/api/cities/all?upload_id=${uploadId}` : '/api/cities/all';
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch cities');
             const cities = await response.json();
-            populateSelect(citySelect, cities, 'Select a city');
-            populateSelect(editCitySelect, cities, 'Select a city');
+            const choices = cities.map(city => ({ value: city, label: city }));
+            cityChoices.setChoices(choices, 'value', 'label', true);
+            editCityChoices.setChoices(choices, 'value', 'label', true);
         } catch (error) {
             console.error('Error loading cities:', error);
         }
@@ -78,8 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const row = tbody.insertRow();
                 row.innerHTML = `
                     <td>${escapeHTML(email.name)}</td>
-                    <td>${escapeHTML(email.outlet_name || '')}</td>
-                    <td>${escapeHTML(email.city || '')}</td>
+                    <td>${escapeHTML(JSON.parse(email.outlet_name || '[]').join(', '))}</td>
+                    <td>${escapeHTML(JSON.parse(email.city || '[]').join(', '))}</td>
                     <td><pre class="template-content">${escapeHTML(email.content.substring(0, 100))}${email.content.length > 100 ? '...' : ''}</pre></td>
                     <td class="action-buttons">
                         <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}"><i class="bi bi-pencil"></i> Edit</button>
@@ -100,8 +144,8 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
             const name = document.getElementById('name').value;
             const content = document.getElementById('content').value;
-            const outlet_name = document.getElementById('outlet_name').value;
-            const city = document.getElementById('city').value;
+            const outlet_name = outletNameChoices.getValue(true);
+            const city = cityChoices.getValue(true);
             const submitButton = addFollowUpForm.querySelector('button[type="submit"]');
 
             submitButton.disabled = true;
@@ -113,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, content, outlet_name, city })
+                    body: JSON.stringify({ name, content, outlet_name: JSON.stringify(outlet_name), city: JSON.stringify(city) })
                 });
 
                 const result = await response.json();
@@ -139,6 +183,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFollowUpEmails();
     loadOutlets();
     loadCities();
+    loadUploads();
+
+    uploadIdSelect.addEventListener('change', function() {
+        const uploadId = this.value;
+        loadOutlets(uploadId);
+        loadCities(uploadId);
+    });
 
     const modal = document.getElementById('edit-modal');
     const closeButtons = modal.querySelectorAll('.close-btn');
@@ -162,8 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = document.getElementById('edit-id').value;
         const name = document.getElementById('edit-name').value;
         const content = document.getElementById('edit-content').value;
-        const outlet_name = document.getElementById('edit-outlet_name').value;
-        const city = document.getElementById('edit-city').value;
+        const outlet_name = editOutletNameChoices.getValue(true);
+        const city = editCityChoices.getValue(true);
 
         try {
             const response = await fetch(`/api/follow-up-email/${id}`, {
@@ -171,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name, content, outlet_name, city })
+                body: JSON.stringify({ name, content, outlet_name: JSON.stringify(outlet_name), city: JSON.stringify(city) })
             });
 
             const result = await response.json();
@@ -214,8 +265,13 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.querySelector('#edit-id').value = email.id;
             modal.querySelector('#edit-name').value = email.name;
             modal.querySelector('#edit-content').value = email.content;
-            modal.querySelector('#edit-outlet_name').value = email.outlet_name || '';
-            modal.querySelector('#edit-city').value = email.city || '';
+
+            if (email.outlet_name) {
+                editOutletNameChoices.setValue(JSON.parse(email.outlet_name));
+            }
+            if (email.city) {
+                editCityChoices.setValue(JSON.parse(email.city));
+            }
 
             modal.style.display = 'block';
         } catch (error) {

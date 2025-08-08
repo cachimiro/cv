@@ -104,5 +104,23 @@ class FollowUpEmailTestCase(unittest.TestCase):
         self.assertIn('City B', data)
         self.assertIn('City C', data)
 
+    def test_search_field(self):
+        # Add some data to the journalists table
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO journalists (outletName) VALUES ('Test Outlet 1')")
+        cursor.execute("INSERT INTO journalists (outletName) VALUES ('Test Outlet 2')")
+        cursor.execute("INSERT INTO journalists (outletName) VALUES ('Another Outlet')")
+        conn.commit()
+        conn.close()
+
+        # Search for an outlet
+        response = self.app.get('/api/search/outletName?q=Test')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(len(data), 2)
+        self.assertIn('Test Outlet 1', data)
+        self.assertIn('Test Outlet 2', data)
+
 if __name__ == '__main__':
     unittest.main()

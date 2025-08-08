@@ -15,21 +15,23 @@
     <div class="add-staff-form-container">
         <h3>Add New Follow Up Email</h3>
         <form id="add-follow-up-form">
+    <div class="form-group">
+        <label for="upload_id">Journalist List</label>
+        <select id="upload_id" class="form-control">
+            <option value="">Select a list</option>
+        </select>
+    </div>
             <div class="form-group">
                 <label for="name">Subject Line</label>
                 <input type="text" id="name" class="form-control" required>
             </div>
             <div class="form-group">
                 <label for="outlet_name">Outlet Name</label>
-                <select id="outlet_name" class="form-control">
-                    <option value="">Select an outlet</option>
-                </select>
+                <input type="text" id="outlet_name" class="form-control" multiple>
             </div>
             <div class="form-group">
                 <label for="city">City</label>
-                <select id="city" class="form-control">
-                    <option value="">Select a city</option>
-                </select>
+                <input type="text" id="city" class="form-control" multiple>
             </div>
             <div class="form-group">
                 <label for="content">Content</label>
@@ -66,15 +68,11 @@
                 </div>
                 <div class="form-group">
                     <label for="edit-outlet_name">Outlet Name</label>
-                    <select id="edit-outlet_name" class="form-control">
-                        <option value="">Select an outlet</option>
-                    </select>
+                    <input type="text" id="edit-outlet_name" class="form-control" multiple>
                 </div>
                 <div class="form-group">
                     <label for="edit-city">City</label>
-                    <select id="edit-city" class="form-control">
-                        <option value="">Select a city</option>
-                    </select>
+                    <input type="text" id="edit-city" class="form-control" multiple>
                 </div>
                 <div class="form-group">
                     <label for="edit-content">Content</label>

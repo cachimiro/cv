@@ -344,6 +344,16 @@ def csv_run_import():
         conn.close()
 
 # --- Email Template API Endpoints ---
+@app.route('/api/uploads', methods=['GET'])
+@login_required
+def get_uploads():
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM uploads ORDER BY created_at DESC")
+    uploads = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in uploads])
+
 @app.route('/api/email-templates', methods=['GET'])
 @login_required
 def get_email_templates():
@@ -674,16 +684,30 @@ def get_outlet_names(table_name):
 def get_all_outlet_names():
     """
     Fetches a distinct list of all outlet names from both journalists and media_titles tables.
+    Can be filtered by upload_id.
     """
+    upload_id = request.args.get('upload_id', type=int)
     try:
         conn = database.get_db_connection()
-        query = """
-            SELECT DISTINCT outletName FROM journalists WHERE outletName IS NOT NULL AND outletName != ''
-            UNION
-            SELECT DISTINCT outletName FROM media_titles WHERE outletName IS NOT NULL AND outletName != ''
-            ORDER BY outletName
-        """
-        outlets = conn.execute(query).fetchall()
+        params = []
+
+        query_parts = []
+
+        base_query_j = "SELECT DISTINCT outletName FROM journalists WHERE outletName IS NOT NULL AND outletName != ''"
+        if upload_id:
+            base_query_j += " AND upload_id = ?"
+            params.append(upload_id)
+        query_parts.append(base_query_j)
+
+        base_query_m = "SELECT DISTINCT outletName FROM media_titles WHERE outletName IS NOT NULL AND outletName != ''"
+        if upload_id:
+            base_query_m += " AND upload_id = ?"
+            params.append(upload_id)
+        query_parts.append(base_query_m)
+
+        query = " UNION ".join(query_parts) + " ORDER BY outletName"
+
+        outlets = conn.execute(query, params).fetchall()
         conn.close()
         outlet_names = [row['outletName'] for row in outlets]
         return jsonify(outlet_names), 200
@@ -696,16 +720,30 @@ def get_all_outlet_names():
 def get_all_cities():
     """
     Fetches a distinct list of all cities from both journalists and media_titles tables.
+    Can be filtered by upload_id.
     """
+    upload_id = request.args.get('upload_id', type=int)
     try:
         conn = database.get_db_connection()
-        query = """
-            SELECT DISTINCT City FROM journalists WHERE City IS NOT NULL AND City != ''
-            UNION
-            SELECT DISTINCT City FROM media_titles WHERE City IS NOT NULL AND City != ''
-            ORDER BY City
-        """
-        cities = conn.execute(query).fetchall()
+        params = []
+
+        query_parts = []
+
+        base_query_j = "SELECT DISTINCT City FROM journalists WHERE City IS NOT NULL AND City != ''"
+        if upload_id:
+            base_query_j += " AND upload_id = ?"
+            params.append(upload_id)
+        query_parts.append(base_query_j)
+
+        base_query_m = "SELECT DISTINCT City FROM media_titles WHERE City IS NOT NULL AND City != ''"
+        if upload_id:
+            base_query_m += " AND upload_id = ?"
+            params.append(upload_id)
+        query_parts.append(base_query_m)
+
+        query = " UNION ".join(query_parts) + " ORDER BY City"
+
+        cities = conn.execute(query, params).fetchall()
         conn.close()
         city_names = [row['City'] for row in cities]
         return jsonify(city_names), 200
@@ -713,28 +751,54 @@ def get_all_cities():
         print(f"Error fetching all cities: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
 
-@app.route('/api/outlets/search')
+@app.route('/api/search/<string:field>')
 @login_required
-def search_outlets():
-    query = request.args.get('q', '')
-    if not query:
+def search_field(field):
+    query_str = request.args.get('q', '')
+    upload_id = request.args.get('upload_id', type=int)
+
+    if not query_str:
         return jsonify([])
 
-    conn = database.get_db_connection()
-    outlets = conn.execute("""
-        SELECT DISTINCT outletName FROM journalists WHERE outletName IS NOT NULL AND outletName != ''
-        UNION
-        SELECT DISTINCT outletName FROM media_titles WHERE outletName IS NOT NULL AND outletName != ''
-    """).fetchall()
-    conn.close()
+    if field not in ['outletName', 'City']:
+        return jsonify({"error": "Invalid search field specified"}), 400
 
-    outlet_names = [row['outletName'] for row in outlets]
+    try:
+        conn = database.get_db_connection()
+        params = []
 
-    # Use fuzzywuzzy to find the best matches
-    matches = process.extract(query, outlet_names, limit=10)
+        query_parts = []
 
-    # Return a list of the matching outlet names
-    return jsonify([match[0] for match in matches])
+        base_query_j = f"SELECT DISTINCT {field} FROM journalists WHERE {field} IS NOT NULL AND {field} != ''"
+        if upload_id:
+            base_query_j += " AND upload_id = ?"
+            params.append(upload_id)
+        query_parts.append(base_query_j)
+
+        base_query_m = f"SELECT DISTINCT {field} FROM media_titles WHERE {field} IS NOT NULL AND {field} != ''"
+        if upload_id:
+            base_query_m += " AND upload_id = ?"
+            params.append(upload_id)
+        query_parts.append(base_query_m)
+
+        full_query = " UNION ".join(query_parts)
+
+        all_values = conn.execute(full_query, params).fetchall()
+        conn.close()
+
+        all_names = [row[field] for row in all_values]
+
+        # Use fuzzywuzzy to find the best matches
+        matches = process.extract(query_str, all_names, limit=10)
+        # Filter out low-score matches
+        matches = [match for match in matches if match[1] >= 80]
+
+        # Return a list of the matching names
+        return jsonify([match[0] for match in matches])
+
+    except Exception as e:
+        print(f"Error searching field {field}: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/staff', methods=['GET'])
 @login_required
