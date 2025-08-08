@@ -143,5 +143,38 @@ class FollowUpEmailTestCase(unittest.TestCase):
             self.assertEqual(data['sent_count'], 1)
             mock_send_to_webhook.assert_called_once()
 
+    def test_external_send_follow_up_data_api_key(self):
+        # Add a follow-up email
+        self.app.post('/api/follow-up-emails',
+                      data=json.dumps(dict(name='Test Subject',
+                                           content='Test Content',
+                                           outlet_name='Test Outlet',
+                                           city='Test City')),
+                      content_type='application/json')
+
+        # Mock the send_to_webhook function
+        with patch('database.send_to_webhook') as mock_send_to_webhook:
+            mock_send_to_webhook.return_value = 1  # Simulate one successful webhook call
+
+            # Test with valid API key
+            response = self.app.post('/api/external/send-follow-up-data',
+                                     headers={'X-API-Key': 'default_test_key_12345'})
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.data)
+            self.assertEqual(data['sent_count'], 1)
+            mock_send_to_webhook.assert_called_once()
+
+            # Test with invalid API key
+            mock_send_to_webhook.reset_mock()
+            response = self.app.post('/api/external/send-follow-up-data',
+                                     headers={'X-API-Key': 'invalid_key'})
+            self.assertEqual(response.status_code, 401)
+            mock_send_to_webhook.assert_not_called()
+
+            # Test with no API key
+            response = self.app.post('/api/external/send-follow-up-data')
+            self.assertEqual(response.status_code, 401)
+            mock_send_to_webhook.assert_not_called()
+
 if __name__ == '__main__':
     unittest.main()
