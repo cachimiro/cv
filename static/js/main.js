@@ -94,31 +94,55 @@ function renderUploadsList(uploads) {
     if (!uploadsListDiv) return;
 
     if (uploads.length === 0) {
-        uploadsListDiv.innerHTML = `<p>No uploads found. Upload a CSV to get started!</p>`;
+        uploadsListDiv.innerHTML = `<div class="card empty-state"><p>No uploads found. Upload a CSV to get started!</p></div>`;
         return;
     }
-    let listHtml = '<div class="upload-cards-container">';
+
+    let listHtml = ''; // The container is already in the HTML
     uploads.forEach(upload => {
         const date = new Date(upload.created_at).toLocaleDateString();
+        // Simple logic for file type icon
+        const fileIcon = upload.name.toLowerCase().includes('.xlsx') ? 'bi-file-earmark-excel-fill' : 'bi-file-earmark-spreadsheet-fill';
+
         listHtml += `
-            <div class="upload-card">
-                <a href="/upload/${upload.id}" class="upload-card-link">
-                    <div class="upload-card-title">${escapeHTML(upload.name)}</div>
-                    <div class="upload-card-date">Uploaded on: ${date}</div>
-                </a>
-                <div class="upload-card-actions">
+            <a href="/upload/${upload.id}" class="upload-card">
+                <div class="upload-card-header">
+                    <i class="bi ${fileIcon} file-type-icon"></i>
+                    <div>
+                        <div class="upload-card-title">${escapeHTML(upload.name)}</div>
+                        <div class="upload-card-date">Uploaded on: ${date}</div>
+                    </div>
+                </div>
+                <div class="upload-card-body">
+                    <!-- Future content can go here, like a preview of records -->
+                </div>
+                <div class="upload-card-footer">
                     <button class="btn btn-secondary btn-sm edit-upload-btn" data-id="${upload.id}" data-name="${escapeHTML(upload.name)}">Edit</button>
                     <button class="btn btn-danger btn-sm delete-upload-btn" data-id="${upload.id}">Delete</button>
                 </div>
-            </div>
+            </a>
         `;
     });
-    listHtml += '</div>';
+
     uploadsListDiv.innerHTML = listHtml;
 
-    document.querySelectorAll('.edit-upload-btn').forEach(button => {
-        button.addEventListener('click', handleEditUploadName);
+    // Re-attach event listeners for the new buttons
+    uploadsListDiv.querySelectorAll('.edit-upload-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent navigation
+            handleEditUploadName(event);
+        });
     });
+
+    uploadsListDiv.querySelectorAll('.delete-upload-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent navigation
+            handleDeleteUpload(event);
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.delete-upload-btn').forEach(button => {
         button.addEventListener('click', handleDeleteUpload);

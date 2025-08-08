@@ -4,33 +4,41 @@
 {% block page_title %}Email Templates{% endblock %}
 
 {% block page_header %}
-    <div class="greeting-banner">
+    <div class="page-header">
         <h1>Email Templates</h1>
         <p>Upload, view, and manage your email templates.</p>
     </div>
 {% endblock %}
 
 {% block content %}
-<div class="staff-management-container">
-    <div class="add-staff-form-container">
-        <h3>Upload a Document</h3>
-        <form id="upload-form" action="/api/upload-template" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="file">Select a .doc, .docx, or .pdf file</label>
-                <input type="file" name="file" id="file" class="form-control" accept=".doc, .docx, .pdf" required>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Upload</button>
-            </div>
-        </form>
+<div class="card">
+    <div class="card-header">
+        <h2>Upload a Document</h2>
+        <p>Select a .doc, .docx, or .pdf file to create a new template.</p>
     </div>
-
-    <div class="staff-list-container">
-        <h3>Existing Templates</h3>
-        <div id="templates-list" class="data-table-container">
-            <!-- Template list will be loaded here by JavaScript -->
-            <p>Loading templates...</p>
+    <form id="upload-form" action="/api/upload-template" method="post" enctype="multipart/form-data" class="upload-form">
+        <div class="file-input-wrapper">
+            <label for="file" class="btn btn-secondary">
+                <i class="bi bi-paperclip"></i>
+                <span>Choose File</span>
+            </label>
+            <input type="file" name="file" id="file" accept=".doc, .docx, .pdf" required>
+            <span id="file-name-display">No file chosen</span>
         </div>
+        <button type="submit" class="btn btn-primary" id="upload-btn" disabled>
+            <i class="bi bi-upload"></i>
+            <span>Upload</span>
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Existing Templates</h2>
+    </div>
+    <div id="templates-list" class="table-wrapper">
+        <!-- Template list will be loaded here by JavaScript -->
+        <p>Loading templates...</p>
     </div>
 </div>
 

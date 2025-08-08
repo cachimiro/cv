@@ -2,119 +2,137 @@
 
 {% block title %}Published Reports - Sway PR Data{% endblock %}
 
+{% block page_header %}
+<div class="page-header">
+    <h1>Published Reports</h1>
+    <p>Add, view, and manage your published reports.</p>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-  <h1 class="page-title">Published Reports</h1>
-  <p class="page-sub">Add, view, and manage your published reports.</p>
-
-  <div class="grid">
+<div class="reports-grid">
     <div class="card">
-      <h3>Add New Published Report</h3>
-      <hr class="div">
-      <form id="report-form">
-        <label class="label" for="link">Link</label>
-        <input class="input" id="link" name="link" type="url" placeholder="https://example.com/article" required>
-
-        <label class="label" for="article">Article</label>
-        <textarea class="textarea" id="article" name="article" placeholder="Short description…" maxlength="280" required></textarea>
-        <div class="help">Keep it concise (≤ 280 chars).</div>
-
-        <label class="label" for="date">Date of Publish</label>
-        <input class="input date" id="date" name="date_of_publish" type="date" placeholder="YYYY-MM-DD" required>
-
-        <div style="margin-top:14px; display:flex; gap:10px">
-          <button class="btn btn-primary" id="submit-btn" type="submit" disabled>Save Report</button>
-          <button class="btn" type="reset">Clear</button>
+        <div class="card-header">
+            <h2>Add New Published Report</h2>
         </div>
-      </form>
+        <form id="report-form">
+            <div class="form-group">
+                <label for="link">Link</label>
+                <input class="form-control" id="link" name="link" type="url" placeholder="https://example.com/article" required>
+            </div>
+
+            <div class="form-group">
+                <label for="article">Article</label>
+                <textarea class="form-control" id="article" name="article" placeholder="Short description…" maxlength="280" required></textarea>
+                <div class="help-text">
+                    Keep it concise (≤ 280 chars).
+                    <i class="bi bi-info-circle-fill tooltip-icon" title="This is a short summary of the article content."></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Date of Publish</label>
+                <input class="form-control" id="date" name="date_of_publish" type="date" required>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" type="reset">Clear</button>
+                <button class="btn btn-primary" id="submit-btn" type="submit" disabled>Save Report</button>
+            </div>
+        </form>
     </div>
 
     <div class="card">
-      <h3>Existing Published Reports</h3>
-      <hr class="div">
-      <div id="table-area" class="table-wrap">
-        <!-- This will be populated by JavaScript -->
-        <div class="empty">Loading reports...</div>
-      </div>
+        <div class="card-header">
+            <h2>Existing Published Reports</h2>
+        </div>
+        <div id="table-area" class="table-wrapper">
+            <div class="empty-state">Loading reports...</div>
+        </div>
     </div>
-  </div> <!-- /.grid -->
 </div>
 {% endblock %}
 
 {% block inline_js %}
-<div id="toast" style="position:fixed; right:16px; bottom:16px; display:none"
-     class="card"></div>
 <script>
-const f = document.getElementById('report-form');
-const btn = document.getElementById('submit-btn');
-const toast = document.getElementById('toast');
-const showToast = (msg)=>{ toast.textContent = msg; toast.style.display='block';
-  setTimeout(()=> toast.style.display='none', 2200);
-};
-const valid = ()=> f.link.checkValidity() && f.article.value.trim() && f.date.value;
+// Logic for this page will be moved to a dedicated JS file or added to main.js
+// For now, keeping the essential logic here.
 
-f.addEventListener('input', ()=> { btn.disabled = !valid(); });
+document.addEventListener('DOMContentLoaded', function() {
+    const f = document.getElementById('report-form');
+    const btn = document.getElementById('submit-btn');
 
-f.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  btn.disabled = true;
-  try{
-    const res = await fetch('/api/published-reports', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        link: f.link.value.trim(),
-        article: f.article.value.trim(),
-        date_of_publish: f.date.value
-      })
+    const validateForm = () => {
+        return f.link.checkValidity() && f.article.value.trim() && f.date.value;
+    };
+
+    f.addEventListener('input', () => {
+        btn.disabled = !validateForm();
     });
-    if(!res.ok) throw new Error('Request failed');
-    const result = await res.json();
-    showToast(result.message || 'Saved ✅');
-    f.reset(); btn.disabled = true;
-    loadReports();
-  }catch(err){
-    showToast('Error saving ❌');
-    btn.disabled = false;
-  }
-});
 
-async function loadReports() {
-    const tableArea = document.getElementById('table-area');
-    try {
-        const response = await fetch('/api/published-reports');
-        const reports = await response.json();
-        if (reports.length === 0) {
-            tableArea.innerHTML = '<div class="empty">No reports yet. Add your first on the left.</div>';
-            return;
+    f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/published-reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    link: f.link.value.trim(),
+                    article: f.article.value.trim(),
+                    date_of_publish: f.date.value
+                })
+            });
+            if (!res.ok) throw new Error('Request failed');
+            const result = await res.json();
+            showFlashMessage(result.message || 'Report saved successfully!', 'success');
+            f.reset();
+            btn.disabled = true;
+            loadReports();
+        } catch (err) {
+            showFlashMessage('Error saving report.', 'danger');
+            btn.disabled = false;
         }
-        const table = document.createElement('table');
-        table.className = 'table';
-        let rows = reports.map(r => `
-            <tr>
-                <td class="link-cell"><a href="${r.link}" target="_blank" rel="noopener">${r.link}</a></td>
-                <td>${r.article}</td>
-                <td class="date-cell">${r.date_of_publish}</td>
-            </tr>
-        `).join('');
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Link</th>
-                    <th>Article</th>
-                    <th class="date-cell">Date of Publish</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        `;
-        tableArea.innerHTML = '';
-        tableArea.appendChild(table);
-    } catch (error) {
-        tableArea.innerHTML = '<div class="empty">Error loading reports.</div>';
-    }
-}
+    });
 
-setInterval(loadReports, 5000);
-loadReports(); // Initial load
+    async function loadReports() {
+        const tableArea = document.getElementById('table-area');
+        try {
+            const response = await fetch('/api/published-reports');
+            const reports = await response.json();
+            if (reports.length === 0) {
+                tableArea.innerHTML = '<div class="empty-state"><p>No reports yet. Add one to get started.</p></div>';
+                return;
+            }
+            const table = document.createElement('table');
+            table.className = 'companies-table'; // Use existing table style
+            let rows = reports.map(r => `
+                <tr>
+                    <td><a href="${r.link}" target="_blank" rel="noopener">${escapeHTML(r.link)}</a></td>
+                    <td>${escapeHTML(r.article)}</td>
+                    <td class="text-right">${r.date_of_publish}</td>
+                </tr>
+            `).join('');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Link</th>
+                        <th>Article</th>
+                        <th class="text-right">Published On</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            `;
+            tableArea.innerHTML = '';
+            tableArea.appendChild(table);
+        } catch (error) {
+            tableArea.innerHTML = '<div class="empty-state"><p>Error loading reports.</p></div>';
+        }
+    }
+
+    // Initial and periodic loading
+    loadReports();
+    setInterval(loadReports, 10000); // Check for new reports every 10 seconds
+});
 </script>
 {% endblock %}

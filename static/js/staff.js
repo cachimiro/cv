@@ -93,27 +93,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function handleDeleteStaff(event) {
         const staffId = event.target.dataset.id;
-        const staffRow = event.target.closest('tr');
-        const staffName = staffRow.querySelector('td').textContent;
+        const modal = document.getElementById('delete-confirm-modal');
+        const confirmBtn = document.getElementById('confirm-delete-btn');
+        const cancelBtn = document.getElementById('cancel-delete-btn');
+        const closeModalBtn = document.getElementById('close-confirm-modal');
 
-        if (confirm(`Are you sure you want to delete ${staffName}?`)) {
+        const openModal = () => modal.style.display = 'block';
+        const closeModal = () => modal.style.display = 'none';
+
+        openModal();
+
+        const confirmHandler = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/staff/${staffId}`, {
                     method: 'DELETE'
                 });
-
                 const result = await response.json();
                 if (!response.ok) {
                     throw new Error(result.error || 'Failed to delete staff member.');
                 }
-
-                // alert('Staff member deleted.');
-                fetchStaff(); // Refresh the list
+                showFlashMessage('Staff member deleted successfully.', 'success');
+                fetchStaff();
             } catch (error) {
                 console.error('Error deleting staff:', error);
-                alert(`Error: ${error.message}`);
+                showFlashMessage(`Error: ${error.message}`, 'danger');
+            } finally {
+                closeModal();
             }
-        }
+        };
+
+        confirmBtn.onclick = confirmHandler;
+        cancelBtn.onclick = closeModal;
+        closeModalBtn.onclick = closeModal;
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
     }
 
     function escapeHTML(str) {

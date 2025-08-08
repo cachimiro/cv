@@ -120,10 +120,48 @@ html, body {
 
 .main-canvas {
     flex-grow: 1;
-    background-color: #ffffff; /* White background for canvas */
-    overflow-y: auto; /* Allow vertical scrolling for canvas content */
-    padding: 32px; /* Generous gutters */
-    /* height: calc(100vh - 56px); -- Not needed due to flex-grow */
+    background-color: #f9fafb; /* Lighter gray background */
+    overflow-y: auto;
+    padding: 32px;
+}
+
+/* --- General Content Styles --- */
+.page-header {
+    margin-bottom: 2rem;
+}
+.page-header h1 {
+    font-size: 1.875rem; /* 30px */
+    font-weight: 700;
+    color: #111827;
+}
+.page-header p {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+.card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem; /* 24px */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+.card-header h2 {
+    font-size: 1.25rem; /* 20px */
+    font-weight: 600;
+    margin: 0;
+}
+.card-header p {
+    color: #6b7280;
+    margin-top: 0.25rem;
 }
 
 
@@ -322,33 +360,28 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
-    gap: 1rem; /* Space between items if they wrap */
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 .search-control {
-    flex-grow: 1; /* Search takes available space */
-    margin-right: 1rem; /* Space before button if on same line */
+    position: relative;
+    flex-grow: 1;
+    min-width: 250px;
 }
-.search-control input[type="search"].form-control { /* Specificity for search */
-    padding: 10px 15px; /* Standard padding for form controls */
-    border: 1px solid #bdc3c7; /* Grey outline */
-    /* width: 100%; -- Handled by flex-grow on parent or specific width */
+.search-icon {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    color: #6b7280;
 }
-.action-control .btn-add-new { /* Specific styling for the add new button */
-    background-color: #00695c; /* Sidebar's darker green */
-    color: #fff;
-    padding: 10px 20px; /* Standard button padding */
+.form-control.with-icon {
+    padding-left: 40px;
+}
+.action-control {
     display: flex;
-    align-items: center;
-}
-.action-control .btn-add-new:hover {
-    background-color: #004d40; /* Darker shade from sidebar */
-}
-.btn-icon { /* For the '+' icon */
-    margin-right: 8px;
-    font-weight: bold;
-    font-size: 1.2em; /* Make '+' slightly larger */
+    gap: 1rem;
 }
 
 
@@ -388,39 +421,51 @@ h1, h2, h3 {
 
 /* Buttons */
 .btn {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 1rem;
+    display: inline-flex; /* Use flex for easy icon alignment */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
     text-decoration: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    border: none;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    border: 1px solid transparent;
+}
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .btn-primary {
-    background-color: #3498db; /* Blue */
+    background-color: #3b82f6;
     color: #fff;
 }
-
 .btn-primary:hover {
-    background-color: #2980b9; /* Darker Blue */
+    background-color: #2563eb;
 }
 
 .btn-danger {
-    background-color: #e74c3c; /* Red */
+    background-color: #ef4444;
     color: #fff;
 }
 .btn-danger:hover {
-    background-color: #c0392b; /* Darker Red */
+    background-color: #dc2626;
 }
 
 .btn-secondary {
-    background-color: #95a5a6; /* Grey */
-    color: #fff;
+    background-color: #e5e7eb;
+    color: #374151;
+    border-color: #d1d5db;
 }
 .btn-secondary:hover {
-    background-color: #7f8c8d; /* Darker Grey */
+    background-color: #d1d5db;
 }
 
 
@@ -643,22 +688,14 @@ th, td {
 }
 
 /* Staff Management Page Layout */
-.staff-management-container {
+.staff-grid {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Form on left, list on right */
-    gap: 2rem; /* Space between the two columns */
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
 }
-.add-staff-form-container, .staff-list-container {
-    background-color: #f8f9fa; /* Light grey background for containers */
-    padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-.add-staff-form-container h3, .staff-list-container h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.5rem;
+
+.modal-content.small {
+    max-width: 450px;
 }
 
 
@@ -1132,55 +1169,140 @@ th, td {
 /* Upload Cards */
 .upload-cards-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
 }
 
 .upload-card {
-    display: block;
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
     padding: 1.5rem;
     text-decoration: none;
     color: inherit;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+.upload-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
 }
 
-.upload-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transform: translateY(-5px);
+.upload-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.file-type-icon {
+    font-size: 2rem;
+    color: #3b82f6;
 }
 
 .upload-card-title {
-    font-size: 1.2rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    color: #111827;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
 }
 
 .upload-card-date {
     font-size: 0.875rem;
-    color: #777;
+    color: #6b7280;
 }
 
-.upload-card-actions {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+.upload-card-body {
+    flex-grow: 1;
+}
+
+.upload-card-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
     display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
 }
 
-.upload-card:hover .upload-card-actions {
-    opacity: 1;
+/* --- Published Reports Page --- */
+.reports-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
 }
 
-.upload-card-actions .btn {
-    margin-left: 0.5rem;
+/* --- Email Templates Page --- */
+.upload-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.file-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1;
+}
+.file-input-wrapper input[type="file"] {
+    display: none; /* Hide the default input */
+}
+#file-name-display {
+    font-style: italic;
+    color: #6b7280;
 }
 
-.upload-card-link {
-    text-decoration: none;
-    color: inherit;
+.template-name-cell {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.help-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.tooltip-icon {
+    cursor: help;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+.companies-table tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+.companies-table .text-right {
+    text-align: right;
+}
+
+/* --- UI Polish --- */
+.card:hover, .btn:hover, .icon-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+.btn:active, .icon-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+.empty-state p {
+    margin-top: 1rem;
+    font-size: 1rem;
+}
+.empty-state i {
+    font-size: 3rem;
+    color: #d1d5db;
 }
