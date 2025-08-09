@@ -4,41 +4,53 @@
 {% block page_title %}Email Templates{% endblock %}
 
 {% block page_header %}
-    <div class="greeting-banner">
+    <div class="page-header">
         <h1>Email Templates</h1>
         <p>Upload, view, and manage your email templates.</p>
     </div>
 {% endblock %}
 
 {% block content %}
-<div class="staff-management-container">
-    <div class="add-staff-form-container">
-        <h3>Upload a Document</h3>
-        <form id="upload-form" action="/api/upload-template" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="file">Select a .doc, .docx, or .pdf file</label>
-                <input type="file" name="file" id="file" class="form-control" accept=".doc, .docx, .pdf" required>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Upload</button>
-            </div>
-        </form>
+<div class="card">
+    <div class="card-header">
+        <h2>Upload a Document</h2>
+        <p>Select a .doc, .docx, or .pdf file to create a new template.</p>
     </div>
-
-    <div class="staff-list-container">
-        <h3>Existing Templates</h3>
-        <div id="templates-list" class="data-table-container">
-            <!-- Template list will be loaded here by JavaScript -->
-            <p>Loading templates...</p>
+    <form id="upload-form" action="/api/upload-template" method="post" enctype="multipart/form-data" class="upload-form">
+        <div class="file-input-wrapper">
+            <label for="file" class="btn btn-secondary">
+                <i class="bi bi-paperclip"></i>
+                <span>Choose File</span>
+            </label>
+            <input type="file" name="file" id="file" accept=".doc, .docx, .pdf" required>
+            <span id="file-name-display">No file chosen</span>
         </div>
+        <button type="submit" class="btn btn-primary" id="upload-btn" disabled>
+            <i class="bi bi-upload"></i>
+            <span>Upload</span>
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Existing Templates</h2>
+        <div class="search-control">
+            <i class="bi bi-search search-icon"></i>
+            <input type="search" id="template-search" placeholder="Search templates..." class="form-control with-icon">
+        </div>
+    </div>
+    <div id="templates-list" class="table-wrapper">
+        <!-- Template list will be loaded here by JavaScript -->
+        <p>Loading templates...</p>
     </div>
 </div>
 
 <!-- Edit Modal -->
 <div id="edit-modal" class="modal" style="display:none;">
-    <div class="modal-content">
+    <div class="modal-content large">
         <div class="modal-header">
-            <h2 class="modal-title">Edit Template</h2>
+            <h2 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Template</h2>
             <button class="close-btn">&times;</button>
         </div>
         <form id="edit-form">
@@ -48,23 +60,26 @@
                     <label for="edit-name">Name</label>
                     <input type="text" id="edit-name" class="form-control" required>
                 </div>
+                <hr class="form-divider">
                 <div class="form-group">
                     <label for="edit-content">Content</label>
-                    <div id="html-content-container" style="border: 1px solid #ccc; resize: vertical; overflow: auto; min-height: 300px; height: 60vh;">
-                        <iframe id="html-content-iframe" class="responsive-iframe" style="height: 100%;"></iframe>
+                    <div id="html-content-container" class="content-editor">
+                        <iframe id="html-content-iframe" class="responsive-iframe"></iframe>
                     </div>
                     <textarea id="edit-content" class="form-control" rows="10" required style="display: none;"></textarea>
                 </div>
                 <div class="form-group">
-                    <img id="view-image" src="" alt="Template Image" style="max-width: 100%; display: none;" />
+                    <img id="view-image" src="" alt="Template Image" style="max-width: 100%; display: none; border: 1px solid #ddd; border-radius: 8px; margin-top: 1rem;" />
                     <input type="file" id="replace-image-input" style="display: none;" accept="image/*" />
-                    <button type="button" class="btn btn-secondary" id="replace-image-btn">Replace Image</button>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="preview-btn">Preview</button>
-                <button type="button" class="btn btn-secondary close-btn">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" id="replace-image-btn">Replace Image</button>
+                <div class="modal-actions-right">
+                    <button type="button" class="btn btn-secondary close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
             </div>
         </form>
     </div>

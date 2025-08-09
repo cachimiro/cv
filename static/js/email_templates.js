@@ -1,70 +1,89 @@
 document.addEventListener('DOMContentLoaded', function() {
     const uploadForm = document.getElementById('upload-form');
     const templatesList = document.getElementById('templates-list');
+    const fileInput = document.getElementById('file');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const uploadBtn = document.getElementById('upload-btn');
 
-    // Function to fetch and display templates
-    async function loadTemplates() {
+    if (fileInput && fileNameDisplay && uploadBtn) {
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = fileInput.files[0].name;
+                uploadBtn.disabled = false;
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+                uploadBtn.disabled = true;
+            }
+        });
+    }
+
+    async function loadTemplates(query = '') {
         try {
             const response = await fetch('/api/email-templates');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const templates = await response.json();
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            let templates = await response.json();
 
-            templatesList.innerHTML = ''; // Clear current list
-            if (templates.length === 0) {
-                templatesList.innerHTML = '<p>No templates found.</p>';
-                return;
+            if (query) {
+                templates = templates.filter(template => template.name.toLowerCase().includes(query.toLowerCase()));
             }
 
-            const table = document.createElement('table');
-            table.className = 'companies-table'; // Use existing table style
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Content</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            `;
-            const tbody = table.querySelector('tbody');
-            templates.forEach(template => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${escapeHTML(template.name)}</td>
-                    <td><pre class="template-content">${escapeHTML(template.content.substring(0, 150))}${template.content.length > 150 ? '...' : ''}</pre></td>
-                    <td class="action-buttons">
-                        <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})">View</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">Delete</button>
-                        <a href="/outreach/${template.id}" class="btn btn-primary btn-sm">Outreach</a>
-                    </td>
-                `;
-            });
-            templatesList.appendChild(table);
+            renderTemplates(templates);
         } catch (error) {
             console.error('Error loading templates:', error);
-            templatesList.innerHTML = '<p>Error loading templates. Please try again later.</p>';
+            templatesList.innerHTML = '<div class="empty-state"><p>Error loading templates.</p></div>';
         }
     }
 
-    // Handle form submission
+    function renderTemplates(templates) {
+        templatesList.innerHTML = '';
+        if (templates.length === 0) {
+            templatesList.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-x-fill"></i><p>No templates found. Upload one to get started.</p></div>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'companies-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Name</th>
+                    <th>Content Preview</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+        templates.forEach(template => {
+            const fileExt = template.name.split('.').pop().toLowerCase();
+            let fileIcon = 'bi-file-earmark-text-fill';
+            if (fileExt === 'pdf') fileIcon = 'bi-file-earmark-pdf-fill';
+            else if (fileExt === 'docx' || fileExt === 'doc') fileIcon = 'bi-file-earmark-word-fill';
+
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td class="template-name-cell" title="${escapeHTML(template.name)}">
+                    <i class="bi ${fileIcon}"></i>
+                    <span>${escapeHTML(template.name)}</span>
+                </td>
+                <td><pre class="template-content">${escapeHTML(template.content.substring(0, 100))}${template.content.length > 100 ? '...' : ''}</pre></td>
+                <td class="action-buttons text-right">
+                    <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})"><i class="bi bi-eye-fill"></i> View</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})"><i class="bi bi-trash-fill"></i> Delete</button>
+                    <a href="/outreach/${template.id}" class="btn btn-primary btn-sm">Outreach</a>
+                </td>
+            `;
+        });
+        templatesList.appendChild(table);
+    }
+
     if (uploadForm) {
         uploadForm.addEventListener('submit', async function(event) {
             event.preventDefault();
             const formData = new FormData(uploadForm);
-            const fileInput = document.getElementById('file');
-            const submitButton = uploadForm.querySelector('button[type="submit"]');
 
-            if (!fileInput.files || fileInput.files.length === 0) {
-                showFlashMessage('Please select a file to upload.', 'warning');
-                return;
-            }
-
-            submitButton.disabled = true;
-            submitButton.textContent = 'Uploading...';
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="btn-spinner"></span> Uploading...';
 
             try {
                 const response = await fetch('/api/upload-template', {
@@ -76,8 +95,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (response.ok) {
                     showFlashMessage(result.message || 'Upload successful!', 'success');
-                    uploadForm.reset(); // Clear the form
-                    loadTemplates(); // Refresh the list
+                    uploadForm.reset();
+                    fileNameDisplay.textContent = 'No file chosen';
+                    uploadBtn.innerHTML = '<i class="bi bi-upload"></i><span>Upload</span>';
+                    loadTemplates();
                 } else {
                     throw new Error(result.error || 'An unknown error occurred.');
                 }
@@ -85,14 +106,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Upload error:', error);
                 showFlashMessage(`Upload failed: ${error.message}`, 'danger');
             } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Upload';
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="bi bi-upload"></i><span>Upload</span>';
             }
         });
     }
 
     // Initial load of templates
     loadTemplates();
+
+    const searchInput = document.getElementById('template-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            loadTemplates(searchInput.value);
+        });
+    }
 
     const modal = document.getElementById('edit-modal');
     const closeButton = modal.querySelector('.close-btn');
@@ -192,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Helper function to escape HTML to prevent XSS
 function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
     return str.replace(/[&<>"']/g, function(match) {
         return {
             '&': '&amp;',
@@ -248,7 +277,19 @@ async function viewTemplate(id) {
 
 function deleteTemplate(id) {
     if (confirm(`Are you sure you want to delete template ID: ${id}?`)) {
-        alert(`Deleting template ID: ${id}`);
-        // Future implementation: send a DELETE request to an API endpoint
+        fetch(`/api/email-template/${id}`, { method: 'DELETE' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete template.');
+                }
+                return response.json();
+            })
+            .then(result => {
+                showFlashMessage(result.message || 'Template deleted successfully.', 'success');
+                loadTemplates();
+            })
+            .catch(error => {
+                showFlashMessage(`Error: ${error.message}`, 'danger');
+            });
     }
 }

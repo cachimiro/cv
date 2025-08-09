@@ -4,16 +4,18 @@
 {% block page_title %}Staff Management{% endblock %}
 
 {% block page_header %}
-    <div class="greeting-banner">
-        <h1>Manage Staff Members</h1>
-        <p>Add or remove staff members who can be assigned to outreach tasks.</p>
-    </div>
+<div class="page-header">
+    <h1>Manage Staff Members</h1>
+    <p>Add or remove staff members who can be assigned to outreach tasks.</p>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="staff-management-container">
-    <div class="add-staff-form-container">
-        <h3>Add New Staff Member</h3>
+<div class="staff-grid">
+    <div class="card">
+        <div class="card-header">
+            <h2>Add New Staff Member</h2>
+        </div>
         <form id="addStaffForm">
             <div class="form-group">
                 <label for="staffName">Staff Name</label>
@@ -24,16 +26,35 @@
                 <input type="email" id="staffEmail" name="staff_email" class="form-control" required>
             </div>
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Add Staff</button>
+                <button type="submit" class="btn btn-primary">Add Staff Member</button>
             </div>
         </form>
     </div>
 
-    <div class="staff-list-container">
-        <h3>Current Staff</h3>
-        <div id="staffList" class="data-table-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Current Staff</h2>
+        </div>
+        <div id="staffList" class="table-wrapper">
             <!-- Staff list will be loaded here by JavaScript -->
-            <p>Loading staff...</p>
+            <div class="empty-state">Loading staff...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal for Deletion -->
+<div id="delete-confirm-modal" class="modal" style="display: none;">
+    <div class="modal-content small">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Deletion</h3>
+            <button id="close-confirm-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this staff member? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="confirm-delete-btn" class="btn btn-danger">Delete</button>
         </div>
     </div>
 </div>

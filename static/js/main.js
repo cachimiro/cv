@@ -5,48 +5,38 @@ let outreachSelections = { staff: [], outlets: [] };
 const API_BASE_URL = '/api';
 
 // --- Main App Initialization ---
-document.addEventListener('DOMContentLoaded', function() {
-    initApp();
-});
-
 function initApp() {
     console.log("Sway PR Data App Initializing...");
 
     // --- Element Attachments ---
-    // Attach to elements that are always on the page
     const uploadCsvBtn = document.getElementById('uploadCsvBtn');
     const csvFileInput = document.getElementById('csvFileInput');
     const createOutreachBtn = document.getElementById('createOutreachBtn');
+    const mappingModal = document.getElementById('mappingModal');
+    const outreachModal = document.getElementById('outreachModal');
+    const mobileNavToggle = document.getElementById('mobile-nav-toggle');
+    const leftSidebar = document.querySelector('.left-sidebar');
+    const uploadSearchInput = document.getElementById('upload-search');
+    const togglePassword = document.querySelector('.toggle-password');
+    const loginForm = document.getElementById('login-form');
 
     if (uploadCsvBtn && csvFileInput) {
-        uploadCsvBtn.addEventListener('click', () => {
-            alert("Upload button was clicked!");
-            csvFileInput.click();
-        });
+        uploadCsvBtn.addEventListener('click', () => csvFileInput.click());
         csvFileInput.addEventListener('change', handleFileSelect);
-        console.log("Attached CSV upload listeners.");
     }
 
     if (createOutreachBtn) {
-        createOutreachBtn.addEventListener('click', () => {
-            alert("Create Outreach button was clicked!");
-            openOutreachModal();
-        });
-        console.log("Attached outreach listener.");
+        createOutreachBtn.addEventListener('click', () => openOutreachModal());
     }
 
-    // Attach listeners to modal parent elements if they exist
-    const mappingModal = document.getElementById('mappingModal');
     if (mappingModal) {
         mappingModal.addEventListener('click', (event) => {
             if (event.target.id === 'closeMappingModalBtn' || event.target.id === 'cancelMappingBtn') closeMappingModal();
             else if (event.target.id === 'runImportBtn') handleRunImport();
             else if (event.target === mappingModal) closeMappingModal();
         });
-        console.log("Attached mapping modal listeners.");
     }
 
-    const outreachModal = document.getElementById('outreachModal');
     if (outreachModal) {
         outreachModal.addEventListener('click', (event) => {
             if (event.target.id === 'closeOutreachModalBtn' || event.target.id === 'outreachCancelBtn') resetOutreachModal();
@@ -54,22 +44,51 @@ function initApp() {
             else if (event.target.id === 'outreachSendBtn') handleSendTargetedOutreach();
             else if (event.target === outreachModal) resetOutreachModal();
         });
-        console.log("Attached outreach modal step listeners.");
+    }
+
+    if (mobileNavToggle && leftSidebar) {
+        mobileNavToggle.addEventListener('click', () => leftSidebar.classList.toggle('is-open'));
+    }
+
+    if (uploadSearchInput) {
+        uploadSearchInput.addEventListener('input', () => loadUploads(uploadSearchInput.value));
+    }
+
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye-slash-fill');
+                icon.classList.add('bi-eye-fill');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-fill');
+                icon.classList.add('bi-eye-slash-fill');
+            }
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', function() {
+            const loginButton = document.getElementById('login-button');
+            const btnText = loginButton.querySelector('.btn-text');
+            const btnSpinner = loginButton.querySelector('.btn-spinner');
+
+            loginButton.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+        });
     }
 
     // --- Initial Data Load ---
-    loadUploads();
-
-    const mobileNavToggle = document.getElementById('mobile-nav-toggle');
-    const leftSidebar = document.querySelector('.left-sidebar');
-
-    if (mobileNavToggle && leftSidebar) {
-        mobileNavToggle.addEventListener('click', function() {
-            leftSidebar.classList.toggle('is-open');
-        });
-        console.log("Attached mobile navigation toggle listener.");
+    if (document.getElementById('uploadsList')) {
+        loadUploads();
     }
 }
+
+document.addEventListener('DOMContentLoaded', initApp);
 
 
 // --- Core Functions ---
@@ -94,45 +113,53 @@ function renderUploadsList(uploads) {
     if (!uploadsListDiv) return;
 
     if (uploads.length === 0) {
-        uploadsListDiv.innerHTML = `<p>No uploads found. Upload a CSV to get started!</p>`;
+        uploadsListDiv.innerHTML = `<div class="card empty-state"><p>No uploads found. Upload a CSV to get started!</p></div>`;
         return;
     }
-    let listHtml = '<div class="upload-cards-container">';
+
+    let listHtml = ''; // The container is already in the HTML
     uploads.forEach(upload => {
         const date = new Date(upload.created_at).toLocaleDateString();
+        // Simple logic for file type icon
+        const fileIcon = upload.name.toLowerCase().includes('.xlsx') ? 'bi-file-earmark-excel-fill' : 'bi-file-earmark-spreadsheet-fill';
+
         listHtml += `
-            <div class="upload-card">
-                <a href="/upload/${upload.id}" class="upload-card-link">
-                    <div class="upload-card-title">${escapeHTML(upload.name)}</div>
-                    <div class="upload-card-date">Uploaded on: ${date}</div>
-                </a>
-                <div class="upload-card-actions">
+            <a href="/upload/${upload.id}" class="upload-card">
+                <div class="upload-card-header">
+                    <i class="bi ${fileIcon} file-type-icon"></i>
+                    <div>
+                        <div class="upload-card-title">${escapeHTML(upload.name)}</div>
+                        <div class="upload-card-date">Uploaded on: ${date}</div>
+                    </div>
+                </div>
+                <div class="upload-card-body">
+                    <!-- Future content can go here, like a preview of records -->
+                </div>
+                <div class="upload-card-footer">
                     <button class="btn btn-secondary btn-sm edit-upload-btn" data-id="${upload.id}" data-name="${escapeHTML(upload.name)}">Edit</button>
                     <button class="btn btn-danger btn-sm delete-upload-btn" data-id="${upload.id}">Delete</button>
                 </div>
-            </div>
+            </a>
         `;
     });
-    listHtml += '</div>';
+
     uploadsListDiv.innerHTML = listHtml;
 
-    document.querySelectorAll('.edit-upload-btn').forEach(button => {
-        button.addEventListener('click', handleEditUploadName);
+    // Re-attach event listeners for the new buttons
+    uploadsListDiv.querySelectorAll('.edit-upload-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent navigation
+            handleEditUploadName(event);
+        });
     });
 
-    document.querySelectorAll('.delete-upload-btn').forEach(button => {
-        button.addEventListener('click', handleDeleteUpload);
+    uploadsListDiv.querySelectorAll('.delete-upload-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent navigation
+            handleDeleteUpload(event);
+        });
     });
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadSearchInput = document.getElementById('upload-search');
-    if (uploadSearchInput) {
-        uploadSearchInput.addEventListener('input', function() {
-            loadUploads(this.value);
-        });
-    }
-});
 
 // --- CSV Import Functions ---
 function openMappingModal() {

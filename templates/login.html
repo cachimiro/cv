@@ -3,39 +3,51 @@
 {% block title %}Login - Sway PR Data{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h2>Login</h2>
+<div class="auth-wrapper">
+    <div class="auth-container">
+        <h2>Login</h2>
+        <p class="auth-subtitle">Welcome back! Please enter your details.</p>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="bi bi-info-circle-fill alert-icon"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-    <form method="POST" action="{{ url_for('login') }}" class="auth-form">
-        {{ form.hidden_tag() if form and form.hidden_tag }} <!-- For CSRF token if using Flask-WTF -->
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" class="form-control" required>
+        <form method="POST" action="{{ url_for('login') }}" class="auth-form" id="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="form-control" required>
+                    <i class="bi bi-eye-slash-fill toggle-password"></i>
+                </div>
+            </div>
+            <div class="form-options">
+                <div class="form-group-inline">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password-link">Forgot password?</a>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-block" id="login-button">
+                    <span class="btn-text">Login</span>
+                    <span class="btn-spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </form>
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Sign up for free</a></p>
         </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" required>
-        </div>
-        <!-- Optional: Remember Me checkbox
-        <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-            <label class="form-check-label" for="remember">Remember Me</label>
-        </div>
-        -->
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-block">Login</button>
-        </div>
-    </form>
-    <p class="mt-2 text-center">
-        Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
-    </p>
+    </div>
 </div>
 {% endblock %}

@@ -4,7 +4,7 @@
 {% block page_title %}Journalists{% endblock %}
 
 {% block page_header %}
-    <div class="greeting-banner">
+    <div class="page-header">
         <h1>Journalists</h1>
         <p>Your central hub for managing journalist data.</p>
     </div>
@@ -13,17 +13,19 @@
 {% block content %}
 <div class="controls-row">
     <div class="search-control">
-        <input type="search" id="upload-search" placeholder="Search uploads..." class="form-control">
+        <i class="bi bi-search search-icon"></i>
+        <input type="search" id="upload-search" placeholder="Search uploads..." class="form-control with-icon">
     </div>
     <div class="action-control">
-        <button id="uploadCsvBtn" class="btn btn-primary btn-add-new">
-            <span class="btn-icon">+</span> Upload New Batch
+        <button id="uploadCsvBtn" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i>
+            <span>Upload New Batch</span>
         </button>
         <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
     </div>
 </div>
 
-<div id="uploadsList">
+<div id="uploadsList" class="upload-cards-container">
     <p>Loading uploads...</p>
 </div>
 

@@ -1,1 +1,6 @@
 __pycache__/
+
+# Artifacts
+__pycache__/
+*.pyc
+company_data.db
