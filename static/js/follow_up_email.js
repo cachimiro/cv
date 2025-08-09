@@ -101,8 +101,56 @@ document.addEventListener('DOMContentLoaded', function() {
      * Fetches and displays the list of existing follow-up emails.
      */
     async function loadFollowUpEmails() {
-        // Implementation for loading emails can be added here if needed.
-        // For now, this is a placeholder.
+        try {
+            const response = await fetch('/api/follow-up-emails');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const emails = await response.json();
+
+            followUpEmailsList.innerHTML = ''; // Clear current list
+
+            if (emails.length === 0) {
+                followUpEmailsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-envelope-open"></i>
+                        <h3>No Follow-Ups Yet</h3>
+                        <p>Create a new follow-up email using the form on the left.</p>
+                    </div>`;
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'companies-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Subject Line</th>
+                        <th>Content</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+            emails.forEach(email => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${escapeHTML(email.name)}</td>
+                    <td><pre class="content-preview">${escapeHTML(email.content.substring(0, 70))}${email.content.length > 70 ? '...' : ''}</pre></td>
+                    <td class="action-buttons text-center">
+                        <button class="btn btn-secondary btn-sm btn-edit" data-id="${email.id}" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="${email.id}" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+            });
+            followUpEmailsList.appendChild(table);
+        } catch (error) {
+            console.error('Error loading follow-up emails:', error);
+            followUpEmailsList.innerHTML = '<div class="empty-state"><p>Error loading follow-up emails.</p></div>';
+        }
     }
 
     // --- Event Listeners ---
@@ -218,6 +266,100 @@ document.addEventListener('DOMContentLoaded', function() {
             handleSearch(e.target.value);
         });
     }
+
+    // --- Edit and Delete Logic ---
+
+    const modal = document.getElementById('edit-modal');
+    const editForm = document.getElementById('edit-form');
+    const closeButtons = modal.querySelectorAll('.close-btn');
+
+    async function viewFollowUpEmail(id) {
+        try {
+            const response = await fetch(`/api/follow-up-email/${id}`);
+            if (!response.ok) throw new Error('Failed to fetch email details.');
+            const email = await response.json();
+
+            // Populate the modal form
+            editForm.querySelector('#edit-id').value = email.id;
+            editForm.querySelector('#edit-name').value = email.name;
+            editForm.querySelector('#edit-content').value = email.content;
+
+            // Note: The select boxes for outlets and cities in the modal are not populated
+            // from the saved email data in this implementation, as the context might have changed.
+            // They will retain their current filter state. This can be enhanced later if needed.
+
+            modal.style.display = 'block';
+        } catch (error) {
+            console.error('Error viewing email:', error);
+            showFlashMessage(error.message, 'danger');
+        }
+    }
+
+    async function deleteFollowUpEmail(id) {
+        if (!confirm('Are you sure you want to delete this follow-up email?')) return;
+
+        try {
+            const response = await fetch(`/api/follow-up-email/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Failed to delete.');
+
+            showFlashMessage(result.message || 'Email deleted successfully!', 'success');
+            loadFollowUpEmails(); // Refresh the list
+        } catch (error) {
+            console.error('Error deleting email:', error);
+            showFlashMessage(error.message, 'danger');
+        }
+    }
+
+    // Event listener for the whole list container (delegation)
+    followUpEmailsList.addEventListener('click', function(event) {
+        const editButton = event.target.closest('.btn-edit');
+        const deleteButton = event.target.closest('.btn-delete');
+
+        if (editButton) {
+            viewFollowUpEmail(editButton.dataset.id);
+        } else if (deleteButton) {
+            deleteFollowUpEmail(deleteButton.dataset.id);
+        }
+    });
+
+    // Event listener for the edit form submission
+    editForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const id = editForm.querySelector('#edit-id').value;
+        const data = {
+            name: editForm.querySelector('#edit-name').value,
+            content: editForm.querySelector('#edit-content').value,
+            // Again, not re-submitting outlets/cities from the modal in this simplified version.
+            // This would require its own set of select boxes in the modal HTML.
+        };
+
+        try {
+            const response = await fetch(`/api/follow-up-email/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Update failed.');
+
+            showFlashMessage(result.message || 'Update successful!', 'success');
+            modal.style.display = 'none';
+            loadFollowUpEmails(); // Refresh the list
+        } catch (error) {
+            console.error('Error updating email:', error);
+            showFlashMessage(error.message, 'danger');
+        }
+    });
+
+    // Listeners to close the modal
+    closeButtons.forEach(button => button.addEventListener('click', () => modal.style.display = 'none'));
+    window.addEventListener('click', event => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
 
     // --- Initial Page Load ---
     function initializePage() {
