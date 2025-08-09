@@ -194,14 +194,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const handleSearch = debounce(async (query) => {
             const uploadId = uploadIdSelect.value;
-            if (query.length < 2) {
-                if (query.length === 0) {
-                    // If search is cleared, show all items for the selected list
-                    renderChoices(container, getAllItems(), type);
-                }
+
+            // If the query is empty, restore the full list for the selected upload.
+            if (!query) {
+                renderChoices(container, getAllItems(), type);
                 return;
             }
 
+            // If query is not empty, perform the search.
             try {
                 const url = `/api/search/${fieldName}?q=${encodeURIComponent(query)}&upload_id=${uploadId || ''}`;
                 const response = await fetch(url);
@@ -210,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderChoices(container, results, type);
             } catch (error) {
                 console.error(`Error searching ${type}:`, error);
-                // Optionally show a message in the container
                 container.innerHTML = `<p class="empty-choice-text">Search failed.</p>`;
             }
         }, 300); // 300ms debounce delay
