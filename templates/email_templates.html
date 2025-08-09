@@ -35,6 +35,10 @@
 <div class="card">
     <div class="card-header">
         <h2>Existing Templates</h2>
+        <div class="search-control">
+            <i class="bi bi-search search-icon"></i>
+            <input type="search" id="template-search" placeholder="Search templates..." class="form-control with-icon">
+        </div>
     </div>
     <div id="templates-list" class="table-wrapper">
         <!-- Template list will be loaded here by JavaScript -->
@@ -44,9 +48,9 @@
 
 <!-- Edit Modal -->
 <div id="edit-modal" class="modal" style="display:none;">
-    <div class="modal-content">
+    <div class="modal-content large">
         <div class="modal-header">
-            <h2 class="modal-title">Edit Template</h2>
+            <h2 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Template</h2>
             <button class="close-btn">&times;</button>
         </div>
         <form id="edit-form">
@@ -56,23 +60,26 @@
                     <label for="edit-name">Name</label>
                     <input type="text" id="edit-name" class="form-control" required>
                 </div>
+                <hr class="form-divider">
                 <div class="form-group">
                     <label for="edit-content">Content</label>
-                    <div id="html-content-container" style="border: 1px solid #ccc; resize: vertical; overflow: auto; min-height: 300px; height: 60vh;">
-                        <iframe id="html-content-iframe" class="responsive-iframe" style="height: 100%;"></iframe>
+                    <div id="html-content-container" class="content-editor">
+                        <iframe id="html-content-iframe" class="responsive-iframe"></iframe>
                     </div>
                     <textarea id="edit-content" class="form-control" rows="10" required style="display: none;"></textarea>
                 </div>
                 <div class="form-group">
-                    <img id="view-image" src="" alt="Template Image" style="max-width: 100%; display: none;" />
+                    <img id="view-image" src="" alt="Template Image" style="max-width: 100%; display: none; border: 1px solid #ddd; border-radius: 8px; margin-top: 1rem;" />
                     <input type="file" id="replace-image-input" style="display: none;" accept="image/*" />
-                    <button type="button" class="btn btn-secondary" id="replace-image-btn">Replace Image</button>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="preview-btn">Preview</button>
-                <button type="button" class="btn btn-secondary close-btn">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" id="replace-image-btn">Replace Image</button>
+                <div class="modal-actions-right">
+                    <button type="button" class="btn btn-secondary close-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
             </div>
         </form>
     </div>

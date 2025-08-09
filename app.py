@@ -362,7 +362,7 @@ def get_email_templates():
 
     return jsonify(templates_list)
 
-@app.route('/api/email-template/<int:template_id>', methods=['GET', 'PUT'])
+@app.route('/api/email-template/<int:template_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
 def email_template(template_id):
     if request.method == 'GET':
@@ -399,6 +399,14 @@ def email_template(template_id):
         conn.close()
 
         return jsonify({"message": "Template updated successfully"})
+
+    if request.method == 'DELETE':
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM email_templates WHERE id = ?", (template_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Template deleted successfully"})
 
 # --- Follow Up Email API Endpoints ---
 @app.route('/api/follow-up-emails', methods=['GET'])
@@ -491,9 +499,27 @@ def add_published_report():
     cursor.execute("INSERT INTO published_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
     conn.commit()
     new_id = cursor.lastrowid
+
+    # Fetch the newly created report to return it
+    cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports WHERE id = ?", (new_id,))
+    new_report = cursor.fetchone()
+
     conn.close()
 
-    return jsonify({"message": "Published report added successfully", "id": new_id}), 201
+    return jsonify(dict(new_report)), 201
+
+@app.route('/api/published-reports/<int:report_id>', methods=['GET'])
+@login_required
+def get_published_report(report_id):
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports WHERE id = ?", (report_id,))
+    report = cursor.fetchone()
+    conn.close()
+    if report:
+        return jsonify(dict(report))
+    else:
+        return jsonify({"error": "Report not found"}), 404
 
 @app.route('/api/published-reports/<int:report_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required

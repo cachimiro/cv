@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showFlashMessage(result.message || 'Report saved successfully!', 'success');
             f.reset();
             btn.disabled = true;
-            loadReports();
+            location.reload();
         } catch (err) {
             showFlashMessage('Error saving report.', 'danger');
             btn.disabled = false;
@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadReports() {
         const tableArea = document.getElementById('table-area');
+        if (!tableArea) return;
+
         try {
             const response = await fetch('/api/published-reports');
             if (!response.ok) throw new Error('Could not fetch reports');
@@ -60,8 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <th class="text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                </tbody>
+                <tbody></tbody>
             `;
             const tbody = table.querySelector('tbody');
             reports.forEach(r => {
@@ -100,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const articleField = document.getElementById('edit-article');
         const dateField = document.getElementById('edit-date');
 
-        // Fetch the report data and populate the form
         fetch(`/api/published-reports/${reportId}`)
             .then(response => response.json())
             .then(report => {
@@ -110,10 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 dateField.value = report.date_of_publish;
                 modal.style.display = 'block';
             })
-            .catch(error => {
-                console.error('Error fetching report for editing:', error);
-                showFlashMessage('Could not load report data.', 'danger');
-            });
+            .catch(error => showFlashMessage('Could not load report data.', 'danger'));
 
         const closeModal = () => modal.style.display = 'none';
         document.getElementById('close-edit-modal').onclick = closeModal;
@@ -137,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
                 showFlashMessage(result.message || 'Report updated successfully!', 'success');
                 closeModal();
-                loadReports();
+                location.reload();
             } catch (error) {
                 showFlashMessage(`Error: ${error.message}`, 'danger');
             }
@@ -154,17 +151,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(result => {
                     showFlashMessage(result.message || 'Report deleted.', 'success');
-                    loadReports();
+                    location.reload();
                 })
-                .catch(error => {
-                    showFlashMessage(`Error: ${error.message}`, 'danger');
-                });
+                .catch(error => showFlashMessage(`Error: ${error.message}`, 'danger'));
         }
     }
 
-    // Initial and periodic loading
+    // Initial loading
     loadReports();
-    setInterval(loadReports, 10000); // Check for new reports every 10 seconds
 });
 
 function escapeHTML(str) {

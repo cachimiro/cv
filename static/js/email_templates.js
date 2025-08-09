@@ -17,56 +17,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    async function loadTemplates() {
+    async function loadTemplates(query = '') {
         try {
             const response = await fetch('/api/email-templates');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const templates = await response.json();
+            let templates = await response.json();
 
-            templatesList.innerHTML = '';
-            if (templates.length === 0) {
-                templatesList.innerHTML = '<div class="empty-state"><p>No templates found. Upload one to get started.</p></div>';
-                return;
+            if (query) {
+                templates = templates.filter(template => template.name.toLowerCase().includes(query.toLowerCase()));
             }
 
-            const table = document.createElement('table');
-            table.className = 'companies-table';
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th style="width: 40%;">Name</th>
-                        <th>Content Preview</th>
-                        <th class="text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            `;
-            const tbody = table.querySelector('tbody');
-            templates.forEach(template => {
-                const fileExt = template.name.split('.').pop().toLowerCase();
-                let fileIcon = 'bi-file-earmark-text-fill';
-                if (fileExt === 'pdf') fileIcon = 'bi-file-earmark-pdf-fill';
-                else if (fileExt === 'docx' || fileExt === 'doc') fileIcon = 'bi-file-earmark-word-fill';
-
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td class="template-name-cell" title="${escapeHTML(template.name)}">
-                        <i class="bi ${fileIcon}"></i>
-                        <span>${escapeHTML(template.name)}</span>
-                    </td>
-                    <td><pre class="template-content">${escapeHTML(template.content.substring(0, 100))}${template.content.length > 100 ? '...' : ''}</pre></td>
-                    <td class="action-buttons text-right">
-                        <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})">View</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})">Delete</button>
-                        <a href="/outreach/${template.id}" class="btn btn-primary btn-sm">Outreach</a>
-                    </td>
-                `;
-            });
-            templatesList.appendChild(table);
+            renderTemplates(templates);
         } catch (error) {
             console.error('Error loading templates:', error);
             templatesList.innerHTML = '<div class="empty-state"><p>Error loading templates.</p></div>';
         }
+    }
+
+    function renderTemplates(templates) {
+        templatesList.innerHTML = '';
+        if (templates.length === 0) {
+            templatesList.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-x-fill"></i><p>No templates found. Upload one to get started.</p></div>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'companies-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Name</th>
+                    <th>Content Preview</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+        templates.forEach(template => {
+            const fileExt = template.name.split('.').pop().toLowerCase();
+            let fileIcon = 'bi-file-earmark-text-fill';
+            if (fileExt === 'pdf') fileIcon = 'bi-file-earmark-pdf-fill';
+            else if (fileExt === 'docx' || fileExt === 'doc') fileIcon = 'bi-file-earmark-word-fill';
+
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td class="template-name-cell" title="${escapeHTML(template.name)}">
+                    <i class="bi ${fileIcon}"></i>
+                    <span>${escapeHTML(template.name)}</span>
+                </td>
+                <td><pre class="template-content">${escapeHTML(template.content.substring(0, 100))}${template.content.length > 100 ? '...' : ''}</pre></td>
+                <td class="action-buttons text-right">
+                    <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})"><i class="bi bi-eye-fill"></i> View</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})"><i class="bi bi-trash-fill"></i> Delete</button>
+                    <a href="/outreach/${template.id}" class="btn btn-primary btn-sm">Outreach</a>
+                </td>
+            `;
+        });
+        templatesList.appendChild(table);
     }
 
     if (uploadForm) {
@@ -106,6 +114,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial load of templates
     loadTemplates();
+
+    const searchInput = document.getElementById('template-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            loadTemplates(searchInput.value);
+        });
+    }
 
     const modal = document.getElementById('edit-modal');
     const closeButton = modal.querySelector('.close-btn');
@@ -262,7 +277,19 @@ async function viewTemplate(id) {
 
 function deleteTemplate(id) {
     if (confirm(`Are you sure you want to delete template ID: ${id}?`)) {
-        alert(`Deleting template ID: ${id}`);
-        // Future implementation: send a DELETE request to an API endpoint
+        fetch(`/api/email-template/${id}`, { method: 'DELETE' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete template.');
+                }
+                return response.json();
+            })
+            .then(result => {
+                showFlashMessage(result.message || 'Template deleted successfully.', 'success');
+                loadTemplates();
+            })
+            .catch(error => {
+                showFlashMessage(`Error: ${error.message}`, 'danger');
+            });
     }
 }
