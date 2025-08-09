@@ -681,6 +681,41 @@ th, td {
     width: 100%;
 }
 
+/* Choices Container for multi-select */
+.choices-container {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #fff;
+    padding: 0.5rem;
+}
+.choices-container select {
+    display: none; /* Hide the original select */
+}
+.choice-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.choice-item:hover {
+    background-color: #f3f4f6;
+}
+.choice-item input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+}
+.choice-item label {
+    margin-bottom: 0;
+    font-weight: 500;
+    color: #374151;
+}
+
+
 /* Outreach & Multi-select Modal Styles */
 .multi-select-container {
     max-height: 250px;
@@ -725,10 +760,60 @@ th, td {
 }
 
 /* Staff Management Page Layout */
-.staff-grid {
+.page-grid {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1fr; /* Default to two equal columns */
     gap: 2rem;
+}
+
+/* For layouts where one column should be wider */
+.page-grid.sidebar-main {
+    grid-template-columns: 1fr 2fr;
+}
+
+
+.form-label-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.form-label-group label {
+    margin-bottom: 0; /* Override default */
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.btn-link:hover {
+    color: #2563eb;
+}
+
+.btn-show-more {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.search-filter {
+    margin-bottom: 0.5rem;
+}
+
+.form-section-heading {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .modal-content.small {
@@ -1264,10 +1349,65 @@ th, td {
 }
 
 /* --- Published Reports Page --- */
-.reports-grid {
+.page-grid {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1fr; /* Default to two equal columns */
     gap: 2rem;
+}
+
+/* For layouts where one column should be wider */
+.page-grid.sidebar-main {
+    grid-template-columns: 1fr 2fr;
+}
+
+
+.form-label-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.form-label-group label {
+    margin-bottom: 0; /* Override default */
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.btn-link:hover {
+    color: #2563eb;
+}
+
+.btn-show-more {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.search-filter {
+    margin-bottom: 0.5rem;
+}
+
+.form-section-heading {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Follow-up Emails List Table */
+#follow-up-emails-list .companies-table {
+    margin-top: 0; /* Override default margin */
 }
 
 /* --- Email Templates Page --- */

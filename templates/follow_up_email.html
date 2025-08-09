@@ -11,59 +11,73 @@
 {% endblock %}
 
 {% block content %}
-<div class="staff-management-container">
-    <div class="add-staff-form-container">
-        <h3>Add New Follow Up Email</h3>
+<div class="page-grid">
+    <!-- Left Column: Form -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Create Follow-Up</h2>
+            <p>Draft a new follow-up email to send to a list of journalists.</p>
+        </div>
         <form id="add-follow-up-form">
-    <div class="form-group">
-        <label for="upload_id">Journalist List</label>
-        <select id="upload_id" class="form-control">
-            <option value="">Select a list</option>
-        </select>
-    </div>
+            <div class="form-group">
+                <label for="upload_id">Journalist List</label>
+                <select id="upload_id" name="upload_id" class="form-control" required>
+                    <option value="">Select a list to target</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label for="name">Subject Line</label>
-                <input type="text" id="name" class="form-control" required>
+                <input type="text" id="name" name="name" class="form-control" required>
             </div>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label for="outlet_name">Outlet Name</label>
-                    <button type="button" id="select-all-outlets" class="btn btn-secondary btn-sm">Select All</button>
-                </div>
-                <input type="text" id="search-selected-outlets" class="form-control" placeholder="Search selected outlets...">
-                <div class="choices-container">
-                    <select id="outlet_name" class="form-control" multiple>
-                    </select>
-                </div>
-                <button type="button" class="btn btn-link btn-sm btn-show-more" id="show-more-outlets">Show More</button>
-            </div>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <label for="city">City</label>
-                    <button type="button" id="select-all-cities" class="btn btn-secondary btn-sm">Select All</button>
-                </div>
-                <input type="text" id="search-selected-cities" class="form-control" placeholder="Search selected cities...">
-                <div class="choices-container">
-                    <select id="city" class="form-control" multiple>
-                    </select>
-                </div>
-                <button type="button" class="btn btn-link btn-sm btn-show-more" id="show-more-cities">Show More</button>
-            </div>
-            <div class="form-group">
+             <div class="form-group">
                 <label for="content">Content</label>
-                <textarea id="content" class="form-control" rows="5" required></textarea>
+                <textarea id="content" name="content" class="form-control" rows="8" required></textarea>
             </div>
+            <div class="form-divider"></div>
+            <h3 class="form-section-heading">Filtering Options</h3>
+             <div class="form-group">
+                <div class="form-label-group">
+                    <label for="outlet_name">Filter by Outlet Name</label>
+                    <button type="button" id="select-all-outlets" class="btn-link">Select All</button>
+                </div>
+                <input type="text" id="search-selected-outlets" class="form-control search-filter" placeholder="Search selected outlets...">
+                <div class="choices-container">
+                    <select id="outlet_name" name="outlet_name" class="form-control" multiple>
+                    </select>
+                </div>
+                <button type="button" class="btn-link btn-show-more" id="show-more-outlets">Show More</button>
+            </div>
+            <div class="form-group">
+                <div class="form-label-group">
+                    <label for="city">Filter by City</label>
+                    <button type="button" id="select-all-cities" class="btn-link">Select All</button>
+                </div>
+                <input type="text" id="search-selected-cities" class="form-control search-filter" placeholder="Search selected cities...">
+                <div class="choices-container">
+                    <select id="city" name="city" class="form-control" multiple>
+                    </select>
+                </div>
+                <button type="button" class="btn-link btn-show-more" id="show-more-cities">Show More</button>
+            </div>
+
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary">Save Follow-Up</button>
             </div>
         </form>
     </div>
 
-    <div class="staff-list-container">
-        <h3>Existing Follow Up Emails</h3>
-        <div id="follow-up-emails-list" class="data-table-container">
+    <!-- Right Column: List -->
+    <div class="card">
+         <div class="card-header">
+            <h2>Existing Follow-Ups</h2>
+            <p>Manage and review previously created follow-up emails.</p>
+        </div>
+        <div id="follow-up-emails-list" class="table-wrapper">
             <!-- Follow up email list will be loaded here by JavaScript -->
-            <p>Loading follow up emails...</p>
+            <div class="empty-state">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <p>Loading follow up emails...</p>
+            </div>
         </div>
     </div>
 </div>
