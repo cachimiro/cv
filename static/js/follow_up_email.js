@@ -164,12 +164,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /**
+     * Debounce function to limit the rate at which a function gets called.
+     */
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    /**
      * Sets up event listeners for filter controls (select all, search).
      * @param {string} type - The type of filter ('outlets' or 'cities').
+     * @param {string} fieldName - The database field name for searching ('outletName' or 'City').
      * @param {HTMLElement} container - The container for the choices.
-     * @param {string[]} allItems - The full list of items for this filter.
+     * @param {function} getAllItems - A function that returns the full list of items for this filter.
      */
-    function setupFilterControls(type, container, allItems) {
+    function setupFilterControls(type, fieldName, container, getAllItems) {
         const selectAllBtn = document.getElementById(`select-all-${type}`);
         const searchInput = document.getElementById(`search-selected-${type}`);
 
@@ -179,13 +192,31 @@ document.addEventListener('DOMContentLoaded', function() {
             checkboxes.forEach(cb => cb.checked = !areAllChecked);
         });
 
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value.toLowerCase();
-            const choiceItems = container.querySelectorAll('.choice-item');
-            choiceItems.forEach(item => {
-                const label = item.querySelector('label').textContent.toLowerCase();
-                item.style.display = label.includes(query) ? '' : 'none';
-            });
+        const handleSearch = debounce(async (query) => {
+            const uploadId = uploadIdSelect.value;
+            if (query.length < 2) {
+                if (query.length === 0) {
+                    // If search is cleared, show all items for the selected list
+                    renderChoices(container, getAllItems(), type);
+                }
+                return;
+            }
+
+            try {
+                const url = `/api/search/${fieldName}?q=${encodeURIComponent(query)}&upload_id=${uploadId || ''}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Search request failed');
+                const results = await response.json();
+                renderChoices(container, results, type);
+            } catch (error) {
+                console.error(`Error searching ${type}:`, error);
+                // Optionally show a message in the container
+                container.innerHTML = `<p class="empty-choice-text">Search failed.</p>`;
+            }
+        }, 300); // 300ms debounce delay
+
+        searchInput.addEventListener('input', (e) => {
+            handleSearch(e.target.value);
         });
     }
 
@@ -195,8 +226,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadFilters(''); // Load with no upload selected initially
         loadFollowUpEmails();
 
-        setupFilterControls('outlets', outletContainer, allOutlets);
-        setupFilterControls('cities', cityContainer, allCities);
+        setupFilterControls('outlets', 'outletName', outletContainer, () => allOutlets);
+        setupFilterControls('cities', 'City', cityContainer, () => allCities);
     }
 
     initializePage();
