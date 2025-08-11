@@ -64,7 +64,10 @@ def email_templates():
 @login_required
 def follow_up_email():
     """Serves the follow up email page."""
-    return render_template('follow_up_email.html')
+    conn = database.get_db_connection()
+    emails = conn.execute("SELECT id, name, content FROM follow_up_emails ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template('follow_up_email.html', emails=emails)
 
 @app.route('/published-reports')
 @login_required
@@ -491,6 +494,93 @@ def follow_up_email_by_id(email_id):
         conn.commit()
         conn.close()
         return jsonify({"message": "Follow-up email deleted successfully"})
+
+@app.route('/add-follow-up', methods=['POST'])
+@login_required
+def add_follow_up():
+    """Handles the form submission for adding a new follow-up email."""
+    name = request.form.get('name')
+    content = request.form.get('content')
+    # The getAll method is used for multi-select fields
+    outlet_names = request.form.getlist('outlet_name')
+    cities = request.form.getlist('city')
+
+    if not name or not content:
+        flash('Subject Line and Content are required.', 'danger')
+        return redirect(url_for('follow_up_email'))
+
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO follow_up_emails (name, content, outlet_name, city) VALUES (?, ?, ?, ?)",
+            (name, content, json.dumps(outlet_names), json.dumps(cities))
+        )
+        conn.commit()
+        conn.close()
+        flash('Follow-up email created successfully!', 'success')
+    except Exception as e:
+        print(f"Error adding follow-up email: {e}")
+        flash('An error occurred while saving the email.', 'danger')
+
+    return redirect(url_for('follow_up_email'))
+
+@app.route('/delete-follow-up/<int:email_id>', methods=['POST'])
+@login_required
+def delete_follow_up(email_id):
+    """Deletes a follow-up email."""
+    try:
+        conn = database.get_db_connection()
+        conn.execute("DELETE FROM follow_up_emails WHERE id = ?", (email_id,))
+        conn.commit()
+        conn.close()
+        flash('Follow-up email deleted successfully.', 'success')
+    except Exception as e:
+        print(f"Error deleting follow-up email: {e}")
+        flash('An error occurred while deleting the email.', 'danger')
+    return redirect(url_for('follow_up_email'))
+
+@app.route('/edit-follow-up/<int:email_id>', methods=['GET', 'POST'])
+@login_required
+def edit_follow_up(email_id):
+    """Handles editing a follow-up email."""
+    conn = database.get_db_connection()
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        content = request.form.get('content')
+
+        if not name or not content:
+            flash('Subject Line and Content are required.', 'danger')
+            # It's better to re-render the edit page with an error than to lose the user's edits
+            email = conn.execute("SELECT * FROM follow_up_emails WHERE id = ?", (email_id,)).fetchone()
+            conn.close()
+            return render_template('edit_follow_up.html', email=email)
+
+        try:
+            conn.execute(
+                "UPDATE follow_up_emails SET name = ?, content = ? WHERE id = ?",
+                (name, content, email_id)
+            )
+            conn.commit()
+            flash('Follow-up email updated successfully!', 'success')
+            return redirect(url_for('follow_up_email'))
+        except Exception as e:
+            print(f"Error updating follow-up email: {e}")
+            flash('An error occurred while updating the email.', 'danger')
+        finally:
+            conn.close()
+
+        return redirect(url_for('edit_follow_up', email_id=email_id))
+
+    # GET request
+    email = conn.execute("SELECT * FROM follow_up_emails WHERE id = ?", (email_id,)).fetchone()
+    conn.close()
+    if email is None:
+        flash('Follow-up email not found.', 'danger')
+        return redirect(url_for('follow_up_email'))
+
+    return render_template('edit_follow_up.html', email=email)
 
 # --- Published Reports API Endpoints ---
 @app.route('/api/published-reports', methods=['GET'])

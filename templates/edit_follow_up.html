@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Follow Up Email - Sway PR Data{% endblock %}
+{% block page_title %}Edit Follow Up{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 2rem auto;">
+    <div class="card-header">
+        <h2>Edit Follow-Up Email</h2>
+        <p>Modify the subject and content of your follow-up email.</p>
+    </div>
+    <form action="{{ url_for('edit_follow_up', email_id=email.id) }}" method="POST">
+        <div class="form-group">
+            <label for="name">Subject Line</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ email.name }}" required>
+        </div>
+        <div class="form-group">
+            <label for="content">Content</label>
+            <textarea id="content" name="content" class="form-control" rows="12" required>{{ email.content }}</textarea>
+        </div>
+        <div class="form-actions">
+            <a href="{{ url_for('follow_up_email') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
