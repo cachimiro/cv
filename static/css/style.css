@@ -1539,3 +1539,11 @@ th, td {
 .response-badge.response-ooo {
     background-color: #007bff; /* Blue */
 }
+
+.response-badge.response-not-valid {
+    background-color: #000000; /* Black */
+}
+
+.response-badge.response-not-interested {
+    background-color: #ff6600; /* Phosphorescent Orange */
+}

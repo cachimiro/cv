@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return 'response-no';
         } else if (lowerCaseResponse === 'out of office') {
             return 'response-ooo';
+        } else if (lowerCaseResponse === 'not valid') {
+            return 'response-not-valid';
+        } else if (lowerCaseResponse === 'not interested') {
+            return 'response-not-interested';
         }
         return '';
     }
