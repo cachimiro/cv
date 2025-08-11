@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadOutlets(query = '') {
         try {
-            const url = query ? `/api/outlets/search?q=${encodeURIComponent(query)}` : '/api/outlets/all';
+            const url = query ? `/api/search/outletName?q=${encodeURIComponent(query)}` : '/api/outlets/all';
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
