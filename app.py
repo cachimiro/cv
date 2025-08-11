@@ -331,7 +331,7 @@ def csv_run_import():
                 values_to_insert.append(row[col_index])
 
             # Add default values for the new columns
-            values_to_insert.extend(['', ''])
+            values_to_insert.extend(['No', '1'])
 
             cursor.execute(sql, tuple(values_to_insert))
             imported_count += 1

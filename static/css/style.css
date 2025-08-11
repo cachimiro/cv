@@ -1513,3 +1513,29 @@ th, td {
     font-size: 3rem;
     color: #d1d5db;
 }
+
+/* Response Badge Styles */
+.response-badge {
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    font-size: .75em;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+.response-badge.response-no {
+    background-color: #dc3545; /* Red */
+}
+
+.response-badge.response-yes {
+    background-color: #28a745; /* Green */
+}
+
+.response-badge.response-ooo {
+    background-color: #007bff; /* Blue */
+}

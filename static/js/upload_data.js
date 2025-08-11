@@ -3,6 +3,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadNameSpan = document.getElementById('upload-name');
     const uploadDataContainer = document.getElementById('upload-data-container');
 
+    function getResponseClass(response) {
+        if (!response) return '';
+        const lowerCaseResponse = response.toLowerCase();
+        if (lowerCaseResponse === 'yes') {
+            return 'response-yes';
+        } else if (lowerCaseResponse === 'no') {
+            return 'response-no';
+        } else if (lowerCaseResponse === 'out of office') {
+            return 'response-ooo';
+        }
+        return '';
+    }
+
     async function loadUploadData() {
         try {
             const uploadResponse = await fetch(`/api/upload/${uploadId}`);
@@ -36,7 +49,11 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadData.records.forEach(record => {
                 tableHtml += '<tr>';
                 headers.forEach(header => {
-                    tableHtml += `<td>${escapeHTML(record[header])}</td>`;
+                    if (header === 'response') {
+                        tableHtml += `<td class="response-cell"><span class="response-badge ${getResponseClass(record[header])}">${escapeHTML(record[header])}</span></td>`;
+                    } else {
+                        tableHtml += `<td>${escapeHTML(record[header])}</td>`;
+                    }
                 });
                 tableHtml += '</tr>';
             });
