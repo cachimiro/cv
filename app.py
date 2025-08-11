@@ -1363,6 +1363,49 @@ def delete_company_api(company_id): # Renamed
         print(f"Error in DELETE /api/companies/{company_id}: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
 
+@app.route('/api/journalist/status', methods=['PUT'])
+@login_required
+def update_journalist_status():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON payload"}), 400
+
+    email = data.get('email')
+    response_status = data.get('response')
+    email_stage = data.get('email_stage')
+
+    if not email or response_status is None or email_stage is None:
+        return jsonify({"error": "Missing required fields: email, response, and email_stage"}), 400
+
+    conn = database.get_db_connection()
+    cursor = conn.cursor()
+
+    # Try to update in 'journalists' table first
+    cursor.execute(
+        "UPDATE journalists SET response = ?, email_stage = ? WHERE Email = ?",
+        (response_status, email_stage, email)
+    )
+    conn.commit()
+
+    if cursor.rowcount > 0:
+        conn.close()
+        return jsonify({"message": f"Status updated for {email} in journalists table."}), 200
+
+    # If not found, try to update in 'media_titles' table
+    cursor.execute(
+        "UPDATE media_titles SET response = ?, email_stage = ? WHERE Email = ?",
+        (response_status, email_stage, email)
+    )
+    conn.commit()
+
+    if cursor.rowcount > 0:
+        conn.close()
+        return jsonify({"message": f"Status updated for {email} in media_titles table."}), 200
+
+    # If email was not found in either table
+    conn.close()
+    return jsonify({"error": f"Email '{email}' not found in the database."}), 404
+
 if __name__ == '__main__':
     database.create_tables()
     app.run(debug=True, host='0.0.0.0', port=5000)
