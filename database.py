@@ -64,6 +64,8 @@ def create_tables():
             ShadowAddressLine1 TEXT, ShadowAddressLine2 TEXT, ShadowCity TEXT,
             ShadowCounty TEXT, ShadowPostalCode TEXT, ShadowCountry TEXT,
             Languages TEXT, Unsubscribed TEXT, Focus TEXT,
+            response TEXT DEFAULT '',
+            email_stage TEXT DEFAULT '',
             -- Note: nameSuffix, outletName, phone were duplicated in prompt, using camelCase version
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -88,6 +90,8 @@ def create_tables():
             ShadowAddressLine1 TEXT, ShadowAddressLine2 TEXT, ShadowCity TEXT,
             ShadowCounty TEXT, ShadowPostalCode TEXT, ShadowCountry TEXT,
             Languages TEXT, Unsubscribed TEXT, Focus TEXT,
+            response TEXT DEFAULT '',
+            email_stage TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (upload_id) REFERENCES uploads (id)
@@ -103,6 +107,30 @@ def create_tables():
             pass # Column already exists
         else:
             raise
+
+    # Add response and email_stage columns to journalists table if they don't exist
+    try:
+        cursor.execute("ALTER TABLE journalists ADD COLUMN response TEXT DEFAULT ''")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e): pass
+        else: raise
+    try:
+        cursor.execute("ALTER TABLE journalists ADD COLUMN email_stage TEXT DEFAULT ''")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e): pass
+        else: raise
+
+    # Add response and email_stage columns to media_titles table if they don't exist
+    try:
+        cursor.execute("ALTER TABLE media_titles ADD COLUMN response TEXT DEFAULT ''")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e): pass
+        else: raise
+    try:
+        cursor.execute("ALTER TABLE media_titles ADD COLUMN email_stage TEXT DEFAULT ''")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e): pass
+        else: raise
 
     # Add upload_id column to media_titles table if it doesn't exist
     try:

@@ -318,7 +318,7 @@ def csv_run_import():
         if not valid_mapping:
             return jsonify({"error": "Column mapping is empty or does not match any headers in the CSV file."}), 400
 
-        db_columns = ['upload_id'] + list(valid_mapping.values())
+        db_columns = ['upload_id'] + list(valid_mapping.values()) + ['response', 'email_stage']
         placeholders = ', '.join(['?'] * len(db_columns))
         sql = f"INSERT INTO {target_table} ({', '.join(db_columns)}) VALUES ({placeholders})"
 
@@ -329,6 +329,9 @@ def csv_run_import():
             for csv_col in valid_mapping.keys():
                 col_index = header_index_map[csv_col]
                 values_to_insert.append(row[col_index])
+
+            # Add default values for the new columns
+            values_to_insert.extend(['', ''])
 
             cursor.execute(sql, tuple(values_to_insert))
             imported_count += 1
