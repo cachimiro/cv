@@ -46,6 +46,14 @@ def require_api_key(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def login_required_api(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return jsonify({"error": "Authentication required."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
 # --- Web Page Routes ---
 
 @app.route('/staff')
@@ -1364,7 +1372,7 @@ def delete_company_api(company_id): # Renamed
         return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/api/journalist/status', methods=['PUT'])
-@login_required
+@login_required_api
 def update_journalist_status():
     data = request.get_json()
     if not data:
