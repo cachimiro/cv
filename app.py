@@ -1360,6 +1360,72 @@ def delete_company_api(company_id): # Renamed
         print(f"Error in DELETE /api/companies/{company_id}: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
 
+@app.route('/api/external/send-follow-up/<int:email_id>', methods=['POST'])
+@require_api_key
+def send_follow_up_to_webhook(email_id):
+    """
+    Sends the data for a specific follow-up email to the n8n webhook.
+    """
+    conn = database.get_db_connection()
+    email = conn.execute("SELECT * FROM follow_up_emails WHERE id = ?", (email_id,)).fetchone()
+
+    if email is None:
+        conn.close()
+        return jsonify({"error": "Follow-up email not found"}), 404
+
+    try:
+        outlet_filters = json.loads(email['outlet_name']) if email['outlet_name'] else []
+        city_filters = json.loads(email['city']) if email['city'] else []
+
+        where_clauses = []
+        params = []
+
+        if outlet_filters:
+            placeholders = ', '.join(['?'] * len(outlet_filters))
+            where_clauses.append(f"outletName IN ({placeholders})")
+            params.extend(outlet_filters)
+
+        if city_filters:
+            placeholders = ', '.join(['?'] * len(city_filters))
+            where_clauses.append(f"City IN ({placeholders})")
+            params.extend(city_filters)
+
+        contacts = []
+        if where_clauses:
+            query_filter = " AND ".join(where_clauses)
+
+            journalists_query = f"SELECT * FROM journalists WHERE {query_filter}"
+            journalists = conn.execute(journalists_query, params).fetchall()
+            contacts.extend([dict(row) for row in journalists])
+
+            media_titles_query = f"SELECT * FROM media_titles WHERE {query_filter}"
+            media_titles = conn.execute(media_titles_query, params).fetchall()
+            contacts.extend([dict(row) for row in media_titles])
+
+        payload = {
+            "follow_up_email": dict(email),
+            "targeted_contacts": contacts
+        }
+
+        success_count = database.send_to_webhook(payload)
+
+        if success_count > 0:
+            return jsonify({
+                "message": f"Successfully sent follow-up data to {success_count} webhook(s).",
+                "email_id": email_id,
+                "contacts_found": len(contacts)
+            }), 200
+        else:
+            return jsonify({"error": "Failed to send data to any webhooks"}), 500
+
+    except json.JSONDecodeError:
+        return jsonify({"error": "Failed to parse filters stored in the database."}), 500
+    except Exception as e:
+        print(f"Error processing follow-up send for email ID {email_id}: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+    finally:
+        conn.close()
+
 if __name__ == '__main__':
     database.create_tables()
     app.run(debug=True, host='0.0.0.0', port=5000)
