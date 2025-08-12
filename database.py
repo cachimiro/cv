@@ -72,6 +72,8 @@ def create_tables():
         )
     ''')
     print("DEBUG: 'journalists' table creation command executed.")
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_journalists_email ON journalists (Email)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_journalists_outletName ON journalists (outletName)')
 
     print("DEBUG: Attempting to create 'media_titles' table...")
     # Media Titles Table (identical structure to journalists)
@@ -94,6 +96,8 @@ def create_tables():
         )
     ''')
     print("DEBUG: 'media_titles' table creation command executed.")
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_media_titles_email ON media_titles (Email)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_media_titles_outletName ON media_titles (outletName)')
 
     # Add upload_id column to journalists table if it doesn't exist
     try:

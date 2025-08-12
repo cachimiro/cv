@@ -989,6 +989,87 @@ def send_targeted_outreach():
         return jsonify({"error": "An internal server error occurred."}), 500
 
 
+import re
+
+# --- Media Contacts API Endpoint ---
+@app.route('/api/media-contacts', methods=['GET'])
+@login_required
+def list_media_contacts():
+    q = request.args.get('q', '').strip()
+    try:
+        page = int(request.args.get('page', 1))
+        page_size = int(request.args.get('page_size', 50))
+    except ValueError:
+        page = 1
+        page_size = 50
+
+    page = max(page, 1)
+    page_size = min(max(page_size, 1), 200)
+    offset = (page - 1) * page_size
+
+    EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+    conn = database.get_db_connection()
+
+    base_query = """
+    FROM (
+        SELECT id, name, outletName, Email, Focus, 'journalist' as type FROM journalists
+        UNION ALL
+        SELECT id, name, outletName, Email, Focus, 'media_title' as type FROM media_titles
+    ) AS contacts
+    WHERE Email IS NOT NULL AND Email != '' AND INSTR(Email, '@') > 1
+    """
+
+    where_clauses = []
+    params = []
+
+    if q:
+        like_query = f"%{q}%"
+        where_clauses.append("(name LIKE ? OR outletName LIKE ? OR Email LIKE ?)")
+        params.extend([like_query, like_query, like_query])
+
+    count_query = "SELECT COUNT(*) as total " + base_query
+    if where_clauses:
+        count_query += " AND " + " AND ".join(where_clauses)
+
+    total_records = conn.execute(count_query, tuple(params)).fetchone()['total']
+
+    data_query = "SELECT id, name, outletName, Email, Focus, type " + base_query
+    if where_clauses:
+        data_query += " AND " + " AND ".join(where_clauses)
+
+    data_query += " ORDER BY name ASC LIMIT ? OFFSET ?"
+    params.extend([page_size, offset])
+
+    items = conn.execute(data_query, tuple(params)).fetchall()
+    conn.close()
+
+    def row_to_dict(row):
+        email = (row['Email'] or "").strip()
+        if not EMAIL_RE.match(email):
+            return None
+
+        categories = (row['Focus'] or "").split(',') if row['Focus'] else []
+        categories = [c.strip() for c in categories if c.strip()]
+
+        return {
+            "id": f"{row['type']}_{row['id']}",
+            "contactName": (row['name'] or "").strip(),
+            "email": email,
+            "outletName": (row['outletName'] or "").strip(),
+            "categories": categories
+        }
+
+    valid_items = [item for item in map(row_to_dict, items) if item is not None]
+
+    return jsonify({
+        "items": valid_items,
+        "page": page,
+        "pageSize": page_size,
+        "total": total_records
+    })
+
+
 # --- Old Company Data API Endpoints (to be refactored/removed) ---
 
 @app.route('/api/upload/<int:upload_id>', methods=['GET', 'PUT', 'DELETE'])

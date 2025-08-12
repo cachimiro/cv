@@ -32,24 +32,44 @@
         </form>
     </div>
 
-    <div id="outlet-selection-container" style="display: none;">
+    <div id="contact-selection-container" style="display: none;">
         <hr>
-        <h2>Select Outlets</h2>
-        <p>Select the outlets you want to target for this outreach.</p>
+        <h2>Select Media Contacts</h2>
+        <p>Select the contacts you want to target for this outreach.</p>
+
         <div class="form-group">
-            <input type="search" id="outlet-search" class="form-control" placeholder="Search for outlets...">
+            <input id="contact-search" type="search" class="form-control" placeholder="Search contacts by name, email, or outlet..." />
         </div>
-        <div id="outlet-list-container" class="multi-select-container">
-            <!-- Outlet list will be loaded here by JavaScript -->
-            <p>Loading outlets...</p>
+
+        <div id="contacts-list" class="contact-list-container">
+            <!-- Contacts will be loaded here by JavaScript -->
         </div>
+
+        <div class="pager">
+            <button id="prev-page-btn" class="btn btn-secondary" disabled>Previous</button>
+            <span id="page-indicator">Page 1 of 1</span>
+            <button id="next-page-btn" class="btn btn-secondary" disabled>Next</button>
+            <select id="page-size-select" class="form-control" style="width: auto; display: inline-block; margin-left: 1rem;">
+                <option value="25">25 per page</option>
+                <option value="50" selected>50 per page</option>
+                <option value="100">100 per page</option>
+            </select>
+        </div>
+
         <div class="form-actions">
-            <button id="confirm-outreach-btn" class="btn btn-primary" disabled>Next: Create Follow-up</button>
+            <div id="selection-summary" aria-live="polite">0 contacts selected</div>
+            <button id="confirm-outreach-btn" class="btn btn-primary" disabled>Confirm Selections</button>
         </div>
+
+        <details class="payload-preview-container">
+            <summary>Preview Payload</summary>
+            <pre id="payload-preview"></pre>
+        </details>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/outreach.css') }}">
     <script src="{{ url_for('static', filename='js/outreach.js') }}"></script>
 {% endblock %}

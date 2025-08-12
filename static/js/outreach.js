@@ -1,19 +1,213 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // --- STATE MANAGEMENT ---
+    const state = {
+        currentPage: 1,
+        pageSize: 50,
+        searchQuery: '',
+        totalContacts: 0,
+        totalPages: 1,
+        selectedContacts: new Map(), // Use a Map to store full contact objects by ID
+        pressReleaseId: window.location.pathname.split('/').pop()
+    };
+
+    // --- DOM ELEMENTS ---
+    const contactSelectionContainer = document.getElementById('contact-selection-container');
+    const searchInput = document.getElementById('contact-search');
+    const contactsListDiv = document.getElementById('contacts-list');
+    const prevPageBtn = document.getElementById('prev-page-btn');
+    const nextPageBtn = document.getElementById('next-page-btn');
+    const pageIndicator = document.getElementById('page-indicator');
+    const pageSizeSelect = document.getElementById('page-size-select');
+    const selectionSummary = document.getElementById('selection-summary');
+    const confirmBtn = document.getElementById('confirm-outreach-btn');
+    const payloadPreview = document.getElementById('payload-preview');
+
+    // --- HELPER FUNCTIONS ---
+    const normalizeEmail = e => (e || "").trim().toLowerCase();
+
+    function dedupeByEmail(contacts) {
+        const seen = new Set();
+        return contacts.filter(contact => {
+            const key = normalizeEmail(contact.email);
+            if (!key || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
+    function buildPayload(pressReleaseId, contactsMap) {
+        const contacts = Array.from(contactsMap.values());
+        const uniqueContacts = dedupeByEmail(contacts);
+        return {
+            pressReleaseId: pressReleaseId || null,
+            selectedContacts: uniqueContacts.map(c => ({
+                contactId: String(c.id),
+                contactName: c.contactName || "",
+                email: c.email,
+                outletName: c.outletName || null,
+                categories: Array.isArray(c.categories) && c.categories.length ? c.categories : undefined
+            })),
+            total: uniqueContacts.length
+        };
+    }
+
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    // --- RENDER FUNCTIONS ---
+    function renderContacts(contacts) {
+        const fragment = document.createDocumentFragment();
+        contactsListDiv.innerHTML = ''; // Clear previous list
+
+        if (contacts.length === 0) {
+            contactsListDiv.innerHTML = '<p style="text-align: center; padding: 2rem;">No contacts found.</p>';
+            return;
+        }
+
+        contacts.forEach(contact => {
+            const item = document.createElement('div');
+            item.className = 'contact-item';
+            item.innerHTML = `
+                <input type="checkbox" id="contact-${contact.id}" data-contact-id="${contact.id}">
+                <label for="contact-${contact.id}">
+                    <span class="contact-name">${contact.contactName}</span>
+                    <span class="contact-outlet">${contact.outletName || 'No outlet'}</span>
+                    <span class="contact-email">${contact.email}</span>
+                </label>
+            `;
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = state.selectedContacts.has(contact.id);
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    state.selectedContacts.set(contact.id, contact);
+                } else {
+                    state.selectedContacts.delete(contact.id);
+                }
+                updateUI();
+            });
+            fragment.appendChild(item);
+        });
+        contactsListDiv.appendChild(fragment);
+    }
+
+    function updateUI() {
+        // Update selection summary
+        selectionSummary.textContent = `${state.selectedContacts.size} contacts selected`;
+        confirmBtn.disabled = state.selectedContacts.size === 0;
+
+        // Update pagination
+        pageIndicator.textContent = `Page ${state.currentPage} of ${state.totalPages}`;
+        prevPageBtn.disabled = state.currentPage <= 1;
+        nextPageBtn.disabled = state.currentPage >= state.totalPages;
+
+        // Persist selection to sessionStorage
+        sessionStorage.setItem(`selection-${state.pressReleaseId}`, JSON.stringify(Array.from(state.selectedContacts.entries())));
+    }
+
+    // --- API CALLS ---
+    async function fetchContacts() {
+        const { currentPage, pageSize, searchQuery } = state;
+        const url = `/api/media-contacts?q=${encodeURIComponent(searchQuery)}&page=${currentPage}&page_size=${pageSize}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+
+            state.totalContacts = data.total;
+            state.totalPages = Math.ceil(data.total / state.pageSize) || 1;
+
+            renderContacts(data.items);
+            updateUI();
+        } catch (error) {
+            console.error('Error fetching contacts:', error);
+            contactsListDiv.innerHTML = '<p style="text-align: center; color: red; padding: 2rem;">Failed to load contacts.</p>';
+        }
+    }
+
+    const debouncedFetch = debounce(fetchContacts, 300);
+
+    // --- EVENT LISTENERS & INITIALIZATION ---
+    function init() {
+        // Load selection from sessionStorage
+        const savedSelection = sessionStorage.getItem(`selection-${state.pressReleaseId}`);
+        if (savedSelection) {
+            state.selectedContacts = new Map(JSON.parse(savedSelection));
+        }
+
+        // Event listeners for staff selection (adapted from old logic)
+        document.querySelectorAll('.staff-member').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.staff-member').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                contactSelectionContainer.style.display = 'block';
+                fetchContacts();
+            });
+        });
+
+        // This part is a bit tricky since the staff list is loaded async.
+        // For now, let's assume the outreach page is only for contact selection.
+        // The user prompt implies the staff selection might be on another page or a simpler component now.
+        // Let's simplify and assume the contact selection is always visible if the user lands here.
+        // The original logic shows staff first, then contacts. We'll keep that.
+
+        // Search
+        searchInput.addEventListener('input', () => {
+            state.searchQuery = searchInput.value;
+            state.currentPage = 1;
+            debouncedFetch();
+        });
+
+        // Pagination
+        pageSizeSelect.addEventListener('change', () => {
+            state.pageSize = parseInt(pageSizeSelect.value, 10);
+            state.currentPage = 1;
+            fetchContacts();
+        });
+
+        prevPageBtn.addEventListener('click', () => {
+            if (state.currentPage > 1) {
+                state.currentPage--;
+                fetchContacts();
+            }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+            if (state.currentPage < state.totalPages) {
+                state.currentPage++;
+                fetchContacts();
+            }
+        });
+
+        // Confirm button
+        confirmBtn.addEventListener('click', () => {
+            const payload = buildPayload(state.pressReleaseId, state.selectedContacts);
+            payloadPreview.textContent = JSON.stringify(payload, null, 2);
+        });
+
+        // Initial load (if staff is already selected in a real app, this would trigger)
+        // For now, we depend on the staff selection click to trigger the first fetch.
+        // Let's hide the contact container until staff is selected.
+        const staffListContainer = document.getElementById('staff-list-container');
+        if (!staffListContainer.querySelector('.active')) {
+            contactSelectionContainer.style.display = 'none';
+        }
+    }
+
+    // The original script loaded staff first. We need to preserve that.
+    // Let's re-integrate the staff loading part.
     const staffListContainer = document.getElementById('staff-list-container');
     const addStaffContainer = document.getElementById('add-staff-container');
-    const addStaffForm = document.getElementById('add-staff-form');
-    const outletSelectionContainer = document.getElementById('outlet-selection-container');
-    const outletListContainer = document.getElementById('outlet-list-container');
-    const confirmOutreachBtn = document.getElementById('confirm-outreach-btn');
 
-    let selectedStaff = null;
-
-    async function loadStaff() {
+    async function loadStaffAndInit() {
         try {
             const response = await fetch('/api/staff');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const staff = await response.json();
 
             if (staff.length === 0) {
@@ -22,25 +216,13 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 let staffListHTML = '<ul>';
                 staff.forEach(member => {
-                    staffListHTML += `<li data-staff-id="${member.id}" data-staff-name="${member.staff_name}" data-staff-email="${member.staff_email}" class="staff-member">${member.staff_name} (${member.staff_email})</li>`;
+                    staffListHTML += `<li data-staff-id="${member.id}" class="staff-member">${member.staff_name} (${member.staff_email})</li>`;
                 });
                 staffListHTML += '</ul>';
                 staffListContainer.innerHTML = staffListHTML;
-                addStaffContainer.style.display = 'none';
 
-                document.querySelectorAll('.staff-member').forEach(item => {
-                    item.addEventListener('click', function() {
-                        selectedStaff = {
-                            id: this.dataset.staffId,
-                            name: this.dataset.staffName,
-                            email: this.dataset.staffEmail,
-                        };
-                        document.querySelectorAll('.staff-member').forEach(el => el.classList.remove('active'));
-                        this.classList.add('active');
-                        outletSelectionContainer.style.display = 'block';
-                        loadOutlets();
-                    });
-                });
+                // Now that staff is loaded, initialize the rest of the logic
+                init();
             }
         } catch (error) {
             console.error('Error loading staff:', error);
@@ -48,91 +230,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    const outletSearchInput = document.getElementById('outlet-search');
-
-    outletSearchInput.addEventListener('input', function() {
-        loadOutlets(this.value);
-    });
-
-    async function loadOutlets(query = '') {
-        try {
-            const url = query ? `/api/search/outletName?q=${encodeURIComponent(query)}` : '/api/outlets/all';
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const outlets = await response.json();
-            let outletListHTML = '';
-            outlets.forEach(outlet => {
-                outletListHTML += `
-                    <div class="multi-select-item">
-                        <input type="checkbox" id="outlet-${outlet}" name="outlets" value="${outlet}">
-                        <label for="outlet-${outlet}">${outlet}</label>
-                    </div>
-                `;
-            });
-            outletListContainer.innerHTML = outletListHTML;
-
-            document.querySelectorAll('input[name="outlets"]').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const anyCheckboxChecked = Array.from(document.querySelectorAll('input[name="outlets"]')).some(i => i.checked);
-                    confirmOutreachBtn.disabled = !anyCheckboxChecked;
-                });
-            });
-
-        } catch (error) {
-            console.error('Error loading outlets:', error);
-            outletListContainer.innerHTML = '<p>Error loading outlets. Please try again later.</p>';
-        }
-    }
-
-    addStaffForm.addEventListener('submit', async function(event) {
-        event.preventDefault();
-        const staffName = document.getElementById('staff-name').value;
-        const staffEmail = document.getElementById('staff-email').value;
-
-        try {
-            const response = await fetch('/api/staff', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    staff_name: staffName,
-                    staff_email: staffEmail,
-                }),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                showFlashMessage('Staff member added successfully!', 'success');
-                addStaffForm.reset();
-                loadStaff(); // Refresh the list
-            } else {
-                throw new Error(result.error || 'An unknown error occurred.');
-            }
-        } catch (error) {
-            console.error('Error adding staff:', error);
-            showFlashMessage(`Failed to add staff member: ${error.message}`, 'danger');
-        }
-    });
-
-    confirmOutreachBtn.addEventListener('click', function() {
-        const selectedOutlets = Array.from(document.querySelectorAll('input[name="outlets"]:checked')).map(cb => cb.value);
-        const pressReleaseId = window.location.pathname.split('/').pop();
-
-        if (!selectedStaff || selectedOutlets.length === 0) {
-            showFlashMessage('Please select a staff member and at least one outlet.', 'warning');
-            return;
-        }
-
-        const staffId = selectedStaff.id;
-        const outletsQueryString = selectedOutlets.map(outlet => `outlets=${encodeURIComponent(outlet)}`).join('&');
-
-        // Redirect to the new follow-up page
-        window.location.href = `/outreach/follow-up?press_release_id=${pressReleaseId}&staff_id=${staffId}&${outletsQueryString}`;
-    });
-
-    loadStaff();
+    loadStaffAndInit();
 });
+
+// Gated webhook stub
+window.OUTREACH_WEBHOOK_ENABLED = false;
+async function sendToWebhook(url, payload) {
+  if (!window.OUTREACH_WEBHOOK_ENABLED) {
+      console.log("Webhook sending is disabled. Payload:", payload);
+      return { skipped: true };
+  }
+
+  console.log("Sending payload to webhook:", url, payload);
+  // In a real scenario, you would uncomment the following lines:
+  /*
+  try {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+    });
+    return { ok: res.ok, status: res.status };
+  } catch (error) {
+    console.error("Error sending to webhook:", error);
+    return { ok: false, error: error };
+  }
+  */
+  return { ok: true, status: 200 }; // Mock success for now
+}
