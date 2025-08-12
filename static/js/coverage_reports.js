@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         btn.disabled = true;
         try {
-            const res = await fetch('/api/published-reports', {
+            const res = await fetch('/api/coverage-reports', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -27,27 +27,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (!res.ok) throw new Error('Request failed');
             const result = await res.json();
-            showFlashMessage(result.message || 'Report saved successfully!', 'success');
+            showFlashMessage(result.message || 'Coverage report saved successfully!', 'success');
             f.reset();
             btn.disabled = true;
             location.reload();
         } catch (err) {
-            showFlashMessage('Error saving report.', 'danger');
+            showFlashMessage('Error saving coverage report.', 'danger');
             btn.disabled = false;
         }
     });
 
-    async function loadReports() {
+    async function loadCoverageReports() {
         const tableArea = document.getElementById('table-area');
         if (!tableArea) return;
 
         try {
-            const response = await fetch('/api/published-reports');
-            if (!response.ok) throw new Error('Could not fetch reports');
+            const response = await fetch('/api/coverage-reports');
+            if (!response.ok) throw new Error('Could not fetch coverage reports');
             const reports = await response.json();
 
             if (reports.length === 0) {
-                tableArea.innerHTML = '<div class="empty-state"><p>No reports yet. Add one to get started.</p></div>';
+                tableArea.innerHTML = '<div class="empty-state"><p>No coverage reports yet. Add one to get started.</p></div>';
                 return;
             }
 
@@ -82,17 +82,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Add event listeners for the new buttons
             table.querySelectorAll('.edit-report-btn').forEach(btn => {
-                btn.addEventListener('click', handleEditReport);
+                btn.addEventListener('click', handleEditCoverageReport);
             });
             table.querySelectorAll('.delete-report-btn').forEach(btn => {
-                btn.addEventListener('click', handleDeleteReport);
+                btn.addEventListener('click', handleDeleteCoverageReport);
             });
         } catch (error) {
-            tableArea.innerHTML = '<div class="empty-state"><p>Error loading reports.</p></div>';
+            tableArea.innerHTML = '<div class="empty-state"><p>Error loading coverage reports.</p></div>';
         }
     }
 
-    function handleEditReport(event) {
+    function handleEditCoverageReport(event) {
         const reportId = event.target.dataset.id;
         const modal = document.getElementById('edit-report-modal');
         const form = document.getElementById('edit-report-form');
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const articleField = document.getElementById('edit-article');
         const dateField = document.getElementById('edit-date');
 
-        fetch(`/api/published-reports/${reportId}`)
+        fetch(`/api/coverage-reports/${reportId}`)
             .then(response => response.json())
             .then(report => {
                 reportIdField.value = report.id;
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 dateField.value = report.date_of_publish;
                 modal.style.display = 'block';
             })
-            .catch(error => showFlashMessage('Could not load report data.', 'danger'));
+            .catch(error => showFlashMessage('Could not load coverage report data.', 'danger'));
 
         const closeModal = () => modal.style.display = 'none';
         document.getElementById('close-edit-modal').onclick = closeModal;
@@ -125,14 +125,14 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             try {
-                const response = await fetch(`/api/published-reports/${reportId}`, {
+                const response = await fetch(`/api/coverage-reports/${reportId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatedReport)
                 });
                 if (!response.ok) throw new Error('Failed to save changes.');
                 const result = await response.json();
-                showFlashMessage(result.message || 'Report updated successfully!', 'success');
+                showFlashMessage(result.message || 'Coverage report updated successfully!', 'success');
                 closeModal();
                 location.reload();
             } catch (error) {
@@ -141,16 +141,16 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    function handleDeleteReport(event) {
+    function handleDeleteCoverageReport(event) {
         const reportId = event.target.dataset.id;
-        if (confirm('Are you sure you want to delete this report?')) {
-            fetch(`/api/published-reports/${reportId}`, { method: 'DELETE' })
+        if (confirm('Are you sure you want to delete this coverage report?')) {
+            fetch(`/api/coverage-reports/${reportId}`, { method: 'DELETE' })
                 .then(response => {
-                    if (!response.ok) throw new Error('Failed to delete report.');
+                    if (!response.ok) throw new Error('Failed to delete coverage report.');
                     return response.json();
                 })
                 .then(result => {
-                    showFlashMessage(result.message || 'Report deleted.', 'success');
+                    showFlashMessage(result.message || 'Coverage report deleted.', 'success');
                     location.reload();
                 })
                 .catch(error => showFlashMessage(`Error: ${error.message}`, 'danger'));
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initial loading
-    loadReports();
+    loadCoverageReports();
 });
 
 function escapeHTML(str) {

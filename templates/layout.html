@@ -48,13 +48,13 @@
                     <li class="{{ 'active' if request.endpoint == 'index' else '' }}">
                         <a href="{{ url_for('index') }}">
                             <i class="bi bi-grid-1x2-fill nav-icon"></i>
-                            <span>Dashboard</span>
+                            <span>Media List</span>
                         </a>
                     </li>
-                    <li class="{{ 'active' if request.endpoint == 'published_reports' else '' }}">
-                        <a href="{{ url_for('published_reports') }}">
+                    <li class="{{ 'active' if request.endpoint == 'coverage_reports' else '' }}">
+                        <a href="{{ url_for('coverage_reports') }}">
                            <i class="bi bi-file-earmark-bar-graph-fill nav-icon"></i>
-                            <span>Reports</span>
+                            <span>Coverage Reports</span>
                         </a>
                     </li>
                 </ul>
@@ -67,10 +67,10 @@
                            <span>Staff</span>
                         </a>
                     </li>
-                    <li class="{{ 'active' if request.endpoint == 'email_templates' else '' }}">
-                        <a href="{{ url_for('email_templates') }}">
+                    <li class="{{ 'active' if request.endpoint == 'press_releases' else '' }}">
+                        <a href="{{ url_for('press_releases') }}">
                             <i class="bi bi-envelope-paper-fill nav-icon"></i>
-                            <span>Email Templates</span>
+                            <span>Press Releases</span>
                         </a>
                     </li>
                     <li class="{{ 'active' if request.endpoint == 'follow_up_email' else '' }}">

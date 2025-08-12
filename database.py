@@ -124,9 +124,9 @@ def create_tables():
     ''')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_staff_email ON staff (staff_email)')
 
-    # Email Templates Table
+    # Press Releases Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS email_templates (
+        CREATE TABLE IF NOT EXISTS press_releases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             content TEXT NOT NULL,
@@ -136,7 +136,7 @@ def create_tables():
 
     # Add html_content column if it doesn't exist
     try:
-        cursor.execute("ALTER TABLE email_templates ADD COLUMN html_content TEXT")
+        cursor.execute("ALTER TABLE press_releases ADD COLUMN html_content TEXT")
     except sqlite3.OperationalError as e:
         if "duplicate column name" in str(e):
             pass # Column already exists
@@ -170,9 +170,9 @@ def create_tables():
         else:
             raise
 
-    # Published Reports Table
+    # Coverage Reports Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS published_reports (
+        CREATE TABLE IF NOT EXISTS coverage_reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             link TEXT NOT NULL,
             article TEXT NOT NULL,
@@ -182,7 +182,7 @@ def create_tables():
 
     conn.commit()
     conn.close()
-    print("Database tables (companies, users, journalists, media_titles, staff, email_templates, follow_up_emails, published_reports) checked/created successfully.")
+    print("Database tables (companies, users, journalists, media_titles, staff, press_releases, follow_up_emails, coverage_reports) checked/created successfully.")
 
 def add_company(name, url, industry):
     """Adds a new company to the database."""

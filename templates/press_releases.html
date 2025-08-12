@@ -1,22 +1,22 @@
 {% extends "layout.html" %}
 
-{% block title %}Email Templates - Sway PR Data{% endblock %}
-{% block page_title %}Email Templates{% endblock %}
+{% block title %}Press Releases - Sway PR Data{% endblock %}
+{% block page_title %}Press Releases{% endblock %}
 
 {% block page_header %}
     <div class="page-header">
-        <h1>Email Templates</h1>
-        <p>Upload, view, and manage your email templates.</p>
+        <h1>Press Releases</h1>
+        <p>Upload, view, and manage your press releases.</p>
     </div>
 {% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h2>Upload a Document</h2>
-        <p>Select a .doc, .docx, or .pdf file to create a new template.</p>
+        <h2>Upload a Press Release</h2>
+        <p>Select a .doc, .docx, or .pdf file to create a new press release.</p>
     </div>
-    <form id="upload-form" action="/api/upload-template" method="post" enctype="multipart/form-data" class="upload-form">
+    <form id="upload-form" action="/api/upload-press-release" method="post" enctype="multipart/form-data" class="upload-form">
         <div class="file-input-wrapper">
             <label for="file" class="btn btn-secondary">
                 <i class="bi bi-paperclip"></i>
@@ -34,15 +34,15 @@
 
 <div class="card">
     <div class="card-header">
-        <h2>Existing Templates</h2>
+        <h2>Existing Press Releases</h2>
         <div class="search-control">
             <i class="bi bi-search search-icon"></i>
-            <input type="search" id="template-search" placeholder="Search templates..." class="form-control with-icon">
+            <input type="search" id="press-release-search" placeholder="Search press releases..." class="form-control with-icon">
         </div>
     </div>
-    <div id="templates-list" class="table-wrapper">
-        <!-- Template list will be loaded here by JavaScript -->
-        <p>Loading templates...</p>
+    <div id="press-releases-list" class="table-wrapper">
+        <!-- Press release list will be loaded here by JavaScript -->
+        <p>Loading press releases...</p>
     </div>
 </div>
 
@@ -50,7 +50,7 @@
 <div id="edit-modal" class="modal" style="display:none;">
     <div class="modal-content large">
         <div class="modal-header">
-            <h2 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Template</h2>
+            <h2 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Press Release</h2>
             <button class="close-btn">&times;</button>
         </div>
         <form id="edit-form">
@@ -69,7 +69,7 @@
                     <textarea id="edit-content" class="form-control" rows="10" required style="display: none;"></textarea>
                 </div>
                 <div class="form-group">
-                    <img id="view-image" src="" alt="Template Image" style="max-width: 100%; display: none; border: 1px solid #ddd; border-radius: 8px; margin-top: 1rem;" />
+                    <img id="view-image" src="" alt="Press Release Image" style="max-width: 100%; display: none; border: 1px solid #ddd; border-radius: 8px; margin-top: 1rem;" />
                     <input type="file" id="replace-image-input" style="display: none;" accept="image/*" />
                 </div>
             </div>
@@ -87,5 +87,5 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{{ url_for('static', filename='js/email_templates.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/press_releases.js') }}"></script>
 {% endblock %}

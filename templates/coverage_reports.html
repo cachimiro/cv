@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 
-{% block title %}Published Reports - Sway PR Data{% endblock %}
+{% block title %}Coverage Reports - Sway PR Data{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1>Published Reports</h1>
-    <p>Add, view, and manage your published reports.</p>
+    <h1>Coverage Reports</h1>
+    <p>Add, view, and manage your coverage reports.</p>
 </div>
 {% endblock %}
 
@@ -13,7 +13,7 @@
 <div class="reports-grid">
     <div class="card">
         <div class="card-header">
-            <h2>Add New Published Report</h2>
+            <h2>Add New Coverage Report</h2>
         </div>
         <form id="report-form">
             <div class="form-group">
@@ -44,10 +44,10 @@
 
     <div class="card">
         <div class="card-header">
-            <h2>Existing Published Reports</h2>
+            <h2>Existing Coverage Reports</h2>
         </div>
         <div id="table-area" class="table-wrapper">
-            <div class="empty-state">Loading reports...</div>
+            <div class="empty-state">Loading coverage reports...</div>
         </div>
     </div>
 </div>
@@ -56,7 +56,7 @@
 <div id="edit-report-modal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Edit Published Report</h3>
+            <h3 class="modal-title">Edit Coverage Report</h3>
             <button id="close-edit-modal" class="close-btn">&times;</button>
         </div>
         <form id="edit-report-form">
@@ -85,5 +85,5 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{{ url_for('static', filename='js/published_reports.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/coverage_reports.js') }}"></script>
 {% endblock %}

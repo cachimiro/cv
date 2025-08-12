@@ -4,7 +4,7 @@ import io
 from app import app
 from database import create_tables, get_db_connection
 
-class EmailTemplatesTestCase(unittest.TestCase):
+class PressReleasesTestCase(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
         self.app = app.test_client()
@@ -43,7 +43,7 @@ class EmailTemplatesTestCase(unittest.TestCase):
             data = {
                 'file': (f, 'test.docx')
             }
-            response = self.app.post('/api/upload-template', content_type='multipart/form-data', data=data)
+            response = self.app.post('/api/upload-press-release', content_type='multipart/form-data', data=data)
 
         os.remove('test.docx')
         self.assertEqual(response.status_code, 200)
@@ -74,7 +74,7 @@ class EmailTemplatesTestCase(unittest.TestCase):
             data = {
                 'file': (f, 'test.pdf')
             }
-            response = self.app.post('/api/upload-template', content_type='multipart/form-data', data=data)
+            response = self.app.post('/api/upload-press-release', content_type='multipart/form-data', data=data)
 
         os.remove('test.pdf')
         self.assertEqual(response.status_code, 200)

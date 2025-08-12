@@ -54,11 +54,11 @@ def staff_management():
     """Serves the staff management page."""
     return render_template('staff.html')
 
-@app.route('/email-templates')
+@app.route('/press-releases')
 @login_required
-def email_templates():
-    """Serves the email templates page."""
-    return render_template('email_templates.html')
+def press_releases():
+    """Serves the press releases page."""
+    return render_template('press_releases.html')
 
 @app.route('/follow-up-email')
 @login_required
@@ -69,17 +69,17 @@ def follow_up_email():
     conn.close()
     return render_template('follow_up_email.html', emails=emails)
 
-@app.route('/published-reports')
+@app.route('/coverage-reports')
 @login_required
-def published_reports():
-    """Serves the published reports page."""
-    return render_template('published_reports.html')
+def coverage_reports():
+    """Serves the coverage reports page."""
+    return render_template('coverage_reports.html')
 
-@app.route('/outreach/<int:template_id>')
+@app.route('/outreach/<int:press_release_id>')
 @login_required
-def outreach_page(template_id):
-    """Serves the outreach page for a specific template."""
-    return render_template('outreach.html', template_id=template_id)
+def outreach_page(press_release_id):
+    """Serves the outreach page for a specific press release."""
+    return render_template('outreach.html', press_release_id=press_release_id)
 
 @app.route('/upload/<int:upload_id>')
 @login_required
@@ -90,8 +90,8 @@ def upload_data_page(upload_id):
 @app.route('/')
 @login_required
 def index():
-    """Serves the main dashboard page."""
-    return render_template('dashboard.html')
+    """Serves the main media list page."""
+    return render_template('media_list.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -357,40 +357,40 @@ def get_uploads():
     conn.close()
     return jsonify([dict(row) for row in uploads])
 
-@app.route('/api/email-templates', methods=['GET'])
+@app.route('/api/press-releases', methods=['GET'])
 @login_required
-def get_email_templates():
+def get_press_releases():
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, content, image, html_content FROM email_templates")
-    templates = cursor.fetchall()
+    cursor.execute("SELECT id, name, content, image, html_content FROM press_releases")
+    press_releases = cursor.fetchall()
     conn.close()
 
-    templates_list = []
-    for row in templates:
-        template_dict = dict(row)
-        if template_dict.get('image'):
-            template_dict['image'] = base64.b64encode(template_dict['image']).decode('utf-8')
-        templates_list.append(template_dict)
+    press_releases_list = []
+    for row in press_releases:
+        press_release_dict = dict(row)
+        if press_release_dict.get('image'):
+            press_release_dict['image'] = base64.b64encode(press_release_dict['image']).decode('utf-8')
+        press_releases_list.append(press_release_dict)
 
-    return jsonify(templates_list)
+    return jsonify(press_releases_list)
 
-@app.route('/api/email-template/<int:template_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/press-release/<int:press_release_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
-def email_template(template_id):
+def press_release(press_release_id):
     if request.method == 'GET':
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, content, image, html_content FROM email_templates WHERE id = ?", (template_id,))
-        template = cursor.fetchone()
+        cursor.execute("SELECT id, name, content, image, html_content FROM press_releases WHERE id = ?", (press_release_id,))
+        press_release = cursor.fetchone()
         conn.close()
-        if template:
-            template_dict = dict(template)
-            if template_dict.get('image'):
-                template_dict['image'] = base64.b64encode(template_dict['image']).decode('utf-8')
-            return jsonify(template_dict)
+        if press_release:
+            press_release_dict = dict(press_release)
+            if press_release_dict.get('image'):
+                press_release_dict['image'] = base64.b64encode(press_release_dict['image']).decode('utf-8')
+            return jsonify(press_release_dict)
         else:
-            return jsonify({"error": "Template not found"}), 404
+            return jsonify({"error": "Press release not found"}), 404
 
     if request.method == 'PUT':
         name = request.form.get('name')
@@ -402,24 +402,24 @@ def email_template(template_id):
 
         if 'image' in request.files:
             image = request.files['image'].read()
-            cursor.execute("UPDATE email_templates SET name = ?, content = ?, image = ?, html_content = ? WHERE id = ?",
-                           (name, content, image, html_content, template_id))
+            cursor.execute("UPDATE press_releases SET name = ?, content = ?, image = ?, html_content = ? WHERE id = ?",
+                           (name, content, image, html_content, press_release_id))
         else:
-            cursor.execute("UPDATE email_templates SET name = ?, content = ?, html_content = ? WHERE id = ?",
-                           (name, content, html_content, template_id))
+            cursor.execute("UPDATE press_releases SET name = ?, content = ?, html_content = ? WHERE id = ?",
+                           (name, content, html_content, press_release_id))
 
         conn.commit()
         conn.close()
 
-        return jsonify({"message": "Template updated successfully"})
+        return jsonify({"message": "Press release updated successfully"})
 
     if request.method == 'DELETE':
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM email_templates WHERE id = ?", (template_id,))
+        cursor.execute("DELETE FROM press_releases WHERE id = ?", (press_release_id,))
         conn.commit()
         conn.close()
-        return jsonify({"message": "Template deleted successfully"})
+        return jsonify({"message": "Press release deleted successfully"})
 
 # --- Follow Up Email API Endpoints ---
 @app.route('/api/follow-up-emails', methods=['GET'])
@@ -583,19 +583,19 @@ def edit_follow_up(email_id):
     return render_template('edit_follow_up.html', email=email)
 
 # --- Published Reports API Endpoints ---
-@app.route('/api/published-reports', methods=['GET'])
+@app.route('/api/coverage-reports', methods=['GET'])
 @login_required
-def get_published_reports():
+def get_coverage_reports():
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports")
+    cursor.execute("SELECT id, link, article, date_of_publish FROM coverage_reports")
     reports = cursor.fetchall()
     conn.close()
     return jsonify([dict(row) for row in reports])
 
-@app.route('/api/published-reports', methods=['POST'])
+@app.route('/api/coverage-reports', methods=['POST'])
 @login_required
-def add_published_report():
+def add_coverage_report():
     data = request.get_json()
     link = data.get('link')
     article = data.get('article')
@@ -606,24 +606,24 @@ def add_published_report():
 
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO published_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
+    cursor.execute("INSERT INTO coverage_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
     conn.commit()
     new_id = cursor.lastrowid
 
     # Fetch the newly created report to return it
-    cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports WHERE id = ?", (new_id,))
+    cursor.execute("SELECT id, link, article, date_of_publish FROM coverage_reports WHERE id = ?", (new_id,))
     new_report = cursor.fetchone()
 
     conn.close()
 
     return jsonify(dict(new_report)), 201
 
-@app.route('/api/published-reports/<int:report_id>', methods=['GET'])
+@app.route('/api/coverage-reports/<int:report_id>', methods=['GET'])
 @login_required
-def get_published_report(report_id):
+def get_coverage_report(report_id):
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports WHERE id = ?", (report_id,))
+    cursor.execute("SELECT id, link, article, date_of_publish FROM coverage_reports WHERE id = ?", (report_id,))
     report = cursor.fetchone()
     conn.close()
     if report:
@@ -631,13 +631,13 @@ def get_published_report(report_id):
     else:
         return jsonify({"error": "Report not found"}), 404
 
-@app.route('/api/published-reports/<int:report_id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/api/coverage-reports/<int:report_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
-def published_report(report_id):
+def coverage_report(report_id):
     conn = database.get_db_connection()
     if request.method == 'GET':
         cursor = conn.cursor()
-        cursor.execute("SELECT id, link, article, date_of_publish FROM published_reports WHERE id = ?", (report_id,))
+        cursor.execute("SELECT id, link, article, date_of_publish FROM coverage_reports WHERE id = ?", (report_id,))
         report = cursor.fetchone()
         conn.close()
         if report:
@@ -655,7 +655,7 @@ def published_report(report_id):
             return jsonify({"error": "All fields are required"}), 400
 
         cursor = conn.cursor()
-        cursor.execute("UPDATE published_reports SET link = ?, article = ?, date_of_publish = ? WHERE id = ?",
+        cursor.execute("UPDATE coverage_reports SET link = ?, article = ?, date_of_publish = ? WHERE id = ?",
                        (link, article, date_of_publish, report_id))
         conn.commit()
         conn.close()
@@ -663,14 +663,14 @@ def published_report(report_id):
 
     if request.method == 'DELETE':
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM published_reports WHERE id = ?", (report_id,))
+        cursor.execute("DELETE FROM coverage_reports WHERE id = ?", (report_id,))
         conn.commit()
         conn.close()
         return jsonify({"message": "Report deleted successfully"})
 
-@app.route('/api/external/published-reports', methods=['POST'])
+@app.route('/api/external/coverage-reports', methods=['POST'])
 @require_api_key
-def add_external_published_report():
+def add_external_coverage_report():
     data = request.get_json()
     link = data.get('link')
     article = data.get('article')
@@ -681,16 +681,16 @@ def add_external_published_report():
 
     conn = database.get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO published_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
+    cursor.execute("INSERT INTO coverage_reports (link, article, date_of_publish) VALUES (?, ?, ?)", (link, article, date_of_publish))
     conn.commit()
     new_id = cursor.lastrowid
     conn.close()
 
-    return jsonify({"message": "Published report added successfully", "id": new_id}), 201
+    return jsonify({"message": "Coverage report added successfully", "id": new_id}), 201
 
-@app.route('/api/upload-template', methods=['POST'])
+@app.route('/api/upload-press-release', methods=['POST'])
 @login_required
-def upload_template():
+def upload_press_release():
     print(f"Request headers: {request.headers}")
     if 'file' not in request.files:
         print("No file part in the request")
@@ -741,7 +741,7 @@ def upload_template():
     try:
         conn = database.get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO email_templates (name, content, image, html_content) VALUES (?, ?, ?, ?)",
+        cursor.execute("INSERT INTO press_releases (name, content, image, html_content) VALUES (?, ?, ?, ?)",
                        (filename, content, image, html_content))
         conn.commit()
         conn.close()
@@ -1018,20 +1018,20 @@ def delete_staff(staff_id):
 @login_required
 def send_outreach():
     data = request.get_json()
-    template_id = data.get('template_id')
+    press_release_id = data.get('press_release_id')
     staff_member = data.get('staff_member')
     outlet_names = data.get('outlet_names')
 
-    if not all([template_id, staff_member, outlet_names]):
+    if not all([press_release_id, staff_member, outlet_names]):
         return jsonify({"error": "Missing required data"}), 400
 
     conn = database.get_db_connection()
 
     # Fetch email template
-    template = conn.execute("SELECT * FROM email_templates WHERE id = ?", (template_id,)).fetchone()
-    if not template:
+    press_release = conn.execute("SELECT * FROM press_releases WHERE id = ?", (press_release_id,)).fetchone()
+    if not press_release:
         conn.close()
-        return jsonify({"error": "Template not found"}), 404
+        return jsonify({"error": "Press release not found"}), 404
 
     # Fetch reporters from selected outlets
     placeholders = ', '.join(['?'] * len(outlet_names))
@@ -1043,13 +1043,13 @@ def send_outreach():
     # Prepare the payload
     # Note: The template content might be large. Consider if you need all of it.
     # The image blob is converted to base64 if it exists.
-    template_dict = dict(template)
-    if template_dict.get('image'):
-        template_dict['image'] = base64.b64encode(template_dict['image']).decode('utf-8')
+    press_release_dict = dict(press_release)
+    if press_release_dict.get('image'):
+        press_release_dict['image'] = base64.b64encode(press_release_dict['image']).decode('utf-8')
 
 
     payload = {
-        "email_template": template_dict,
+        "press_release": press_release_dict,
         "staff_member": staff_member,
         "reporters": [dict(j) for j in journalists] + [dict(m) for m in media_titles]
     }

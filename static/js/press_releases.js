@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const uploadForm = document.getElementById('upload-form');
-    const templatesList = document.getElementById('templates-list');
+    const templatesList = document.getElementById('press-releases-list');
     const fileInput = document.getElementById('file');
     const fileNameDisplay = document.getElementById('file-name-display');
     const uploadBtn = document.getElementById('upload-btn');
@@ -17,27 +17,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    async function loadTemplates(query = '') {
+    async function loadPressReleases(query = '') {
         try {
-            const response = await fetch('/api/email-templates');
+            const response = await fetch('/api/press-releases');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            let templates = await response.json();
+            let press_releases = await response.json();
 
             if (query) {
-                templates = templates.filter(template => template.name.toLowerCase().includes(query.toLowerCase()));
+                press_releases = press_releases.filter(press_release => press_release.name.toLowerCase().includes(query.toLowerCase()));
             }
 
-            renderTemplates(templates);
+            renderPressReleases(press_releases);
         } catch (error) {
-            console.error('Error loading templates:', error);
-            templatesList.innerHTML = '<div class="empty-state"><p>Error loading templates.</p></div>';
+            console.error('Error loading press releases:', error);
+            templatesList.innerHTML = '<div class="empty-state"><p>Error loading press releases.</p></div>';
         }
     }
 
-    function renderTemplates(templates) {
+    function renderPressReleases(press_releases) {
         templatesList.innerHTML = '';
-        if (templates.length === 0) {
-            templatesList.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-x-fill"></i><p>No templates found. Upload one to get started.</p></div>';
+        if (press_releases.length === 0) {
+            templatesList.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-x-fill"></i><p>No press releases found. Upload one to get started.</p></div>';
             return;
         }
 
@@ -54,23 +54,23 @@ document.addEventListener('DOMContentLoaded', function() {
             <tbody></tbody>
         `;
         const tbody = table.querySelector('tbody');
-        templates.forEach(template => {
-            const fileExt = template.name.split('.').pop().toLowerCase();
+        press_releases.forEach(press_release => {
+            const fileExt = press_release.name.split('.').pop().toLowerCase();
             let fileIcon = 'bi-file-earmark-text-fill';
             if (fileExt === 'pdf') fileIcon = 'bi-file-earmark-pdf-fill';
             else if (fileExt === 'docx' || fileExt === 'doc') fileIcon = 'bi-file-earmark-word-fill';
 
             const row = tbody.insertRow();
             row.innerHTML = `
-                <td class="template-name-cell" title="${escapeHTML(template.name)}">
+                <td class="template-name-cell" title="${escapeHTML(press_release.name)}">
                     <i class="bi ${fileIcon}"></i>
-                    <span>${escapeHTML(template.name)}</span>
+                    <span>${escapeHTML(press_release.name)}</span>
                 </td>
-                <td><pre class="template-content">${escapeHTML(template.content.substring(0, 100))}${template.content.length > 100 ? '...' : ''}</pre></td>
+                <td><pre class="template-content">${escapeHTML(press_release.content.substring(0, 100))}${press_release.content.length > 100 ? '...' : ''}</pre></td>
                 <td class="action-buttons text-right">
-                    <button class="btn btn-secondary btn-sm" onclick="viewTemplate(${template.id})"><i class="bi bi-eye-fill"></i> View</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${template.id})"><i class="bi bi-trash-fill"></i> Delete</button>
-                    <a href="/outreach/${template.id}" class="btn btn-primary btn-sm">Outreach</a>
+                    <button class="btn btn-secondary btn-sm" onclick="viewPressRelease(${press_release.id})"><i class="bi bi-eye-fill"></i> View</button>
+                    <button class="btn btn-danger btn-sm" onclick="deletePressRelease(${press_release.id})"><i class="bi bi-trash-fill"></i> Delete</button>
+                    <a href="/outreach/${press_release.id}" class="btn btn-primary btn-sm">Outreach</a>
                 </td>
             `;
         });
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadBtn.innerHTML = '<span class="btn-spinner"></span> Uploading...';
 
             try {
-                const response = await fetch('/api/upload-template', {
+                const response = await fetch('/api/upload-press-release', {
                     method: 'POST',
                     body: formData
                 });
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     uploadForm.reset();
                     fileNameDisplay.textContent = 'No file chosen';
                     uploadBtn.innerHTML = '<i class="bi bi-upload"></i><span>Upload</span>';
-                    loadTemplates();
+                    loadPressReleases();
                 } else {
                     throw new Error(result.error || 'An unknown error occurred.');
                 }
@@ -112,13 +112,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initial load of templates
-    loadTemplates();
+    // Initial load of press releases
+    loadPressReleases();
 
-    const searchInput = document.getElementById('template-search');
+    const searchInput = document.getElementById('press-release-search');
     if (searchInput) {
         searchInput.addEventListener('input', () => {
-            loadTemplates(searchInput.value);
+            loadPressReleases(searchInput.value);
         });
     }
 
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`/api/email-template/${id}`, {
+            const response = await fetch(`/api/press-release/${id}`, {
                 method: 'PUT',
                 body: formData
             });
@@ -162,9 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (response.ok) {
-                showFlashMessage(result.message || 'Template updated successfully!', 'success');
+                showFlashMessage(result.message || 'Press release updated successfully!', 'success');
                 modal.style.display = 'none';
-                loadTemplates(); // Refresh the list
+                loadPressReleases(); // Refresh the list
             } else {
                 throw new Error(result.error || 'An unknown error occurred.');
             }
@@ -232,18 +232,18 @@ function escapeHTML(str) {
     });
 }
 
-async function viewTemplate(id) {
+async function viewPressRelease(id) {
     try {
-        const response = await fetch(`/api/email-template/${id}`);
+        const response = await fetch(`/api/press-release/${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const template = await response.json();
+        const press_release = await response.json();
 
         const modal = document.getElementById('edit-modal');
-        modal.querySelector('#edit-id').value = template.id;
-        modal.querySelector('#edit-name').value = template.name;
-        modal.querySelector('#edit-content').value = template.content;
+        modal.querySelector('#edit-id').value = press_release.id;
+        modal.querySelector('#edit-name').value = press_release.name;
+        modal.querySelector('#edit-content').value = press_release.content;
 
         const iframe = document.getElementById('html-content-iframe');
         const responsiveStyle = `
@@ -252,7 +252,7 @@ async function viewTemplate(id) {
                 img { max-width: 100%; height: auto; }
             </style>
         `;
-        iframe.srcdoc = responsiveStyle + template.html_content;
+        iframe.srcdoc = responsiveStyle + press_release.html_content;
         iframe.onload = function() {
             // Make the iframe content editable
             iframe.contentDocument.body.contentEditable = true;
@@ -260,8 +260,8 @@ async function viewTemplate(id) {
         };
 
         const imageView = modal.querySelector('#view-image');
-        if (template.image) {
-            imageView.src = `data:image/png;base64,${template.image}`;
+        if (press_release.image) {
+            imageView.src = `data:image/png;base64,${press_release.image}`;
             imageView.style.display = 'block';
         } else {
             imageView.style.display = 'none';
@@ -269,24 +269,24 @@ async function viewTemplate(id) {
 
         modal.style.display = 'block';
     } catch (error) {
-        console.error('Error fetching template:', error);
-        showFlashMessage('Could not fetch template details.', 'danger');
+        console.error('Error fetching press release:', error);
+        showFlashMessage('Could not fetch press release details.', 'danger');
     }
 }
 
 
-function deleteTemplate(id) {
-    if (confirm(`Are you sure you want to delete template ID: ${id}?`)) {
-        fetch(`/api/email-template/${id}`, { method: 'DELETE' })
+function deletePressRelease(id) {
+    if (confirm(`Are you sure you want to delete press release ID: ${id}?`)) {
+        fetch(`/api/press-release/${id}`, { method: 'DELETE' })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Failed to delete template.');
+                    throw new Error('Failed to delete press release.');
                 }
                 return response.json();
             })
             .then(result => {
-                showFlashMessage(result.message || 'Template deleted successfully.', 'success');
-                loadTemplates();
+                showFlashMessage(result.message || 'Press release deleted successfully.', 'success');
+                loadPressReleases();
             })
             .catch(error => {
                 showFlashMessage(`Error: ${error.message}`, 'danger');
