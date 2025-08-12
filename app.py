@@ -60,14 +60,6 @@ def press_releases():
     """Serves the press releases page."""
     return render_template('press_releases.html')
 
-@app.route('/follow-up-email')
-@login_required
-def follow_up_email():
-    """Serves the follow up email page."""
-    conn = database.get_db_connection()
-    emails = conn.execute("SELECT id, name, content FROM follow_up_emails ORDER BY id DESC").fetchall()
-    conn.close()
-    return render_template('follow_up_email.html', emails=emails)
 
 @app.route('/coverage-reports')
 @login_required
@@ -80,6 +72,68 @@ def coverage_reports():
 def outreach_page(press_release_id):
     """Serves the outreach page for a specific press release."""
     return render_template('outreach.html', press_release_id=press_release_id)
+
+@app.route('/outreach/follow-up', methods=['GET', 'POST'])
+@login_required
+def outreach_follow_up():
+    """Handles the creation of a follow-up email."""
+    if request.method == 'GET':
+        press_release_id = request.args.get('press_release_id')
+        staff_id = request.args.get('staff_id')
+        outlets = request.args.getlist('outlets')
+
+        if not all([press_release_id, staff_id, outlets]):
+            flash('Missing information for creating a follow-up. Please start the outreach process again.', 'danger')
+            return redirect(url_for('press_releases'))
+
+        return render_template(
+            'follow_up_outreach.html',
+            press_release_id=press_release_id,
+            staff_id=staff_id,
+            outlets=outlets
+        )
+
+    if request.method == 'POST':
+        press_release_id = request.form.get('press_release_id')
+        staff_id = request.form.get('staff_id')
+        outlets = request.form.getlist('outlets')
+        subject = request.form.get('subject')
+        content = request.form.get('content')
+
+        if not all([press_release_id, staff_id, outlets, subject, content]):
+            flash('All fields are required to save a follow-up.', 'danger')
+            # To avoid losing data, re-render the form with the data they already entered
+            return render_template(
+                'follow_up_outreach.html',
+                press_release_id=press_release_id,
+                staff_id=staff_id,
+                outlets=outlets,
+                subject=subject,
+                content=content
+            )
+
+        try:
+            conn = database.get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO follow_up_emails (press_release_id, staff_id, name, content, outlets) VALUES (?, ?, ?, ?, ?)",
+                (press_release_id, staff_id, subject, content, json.dumps(outlets))
+            )
+            conn.commit()
+            conn.close()
+
+            # Here you could also trigger the webhooks if needed
+            # For now, just confirming it's saved.
+
+            flash('Follow-up email has been saved successfully.', 'success')
+            return redirect(url_for('press_releases'))
+        except Exception as e:
+            print(f"Error saving follow-up email: {e}")
+            flash('An error occurred while saving the follow-up email.', 'danger')
+            return redirect(url_for('outreach_follow_up', press_release_id=press_release_id, staff_id=staff_id, outlets=outlets))
+
+    # This part should not be reached for a POST request, but as a fallback:
+    return redirect(url_for('press_releases'))
 
 @app.route('/upload/<int:upload_id>')
 @login_required
@@ -421,166 +475,6 @@ def press_release(press_release_id):
         conn.close()
         return jsonify({"message": "Press release deleted successfully"})
 
-# --- Follow Up Email API Endpoints ---
-@app.route('/api/follow-up-emails', methods=['GET'])
-@login_required
-def get_follow_up_emails():
-    conn = database.get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, content, outlet_name, city FROM follow_up_emails")
-    emails = cursor.fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in emails])
-
-@app.route('/api/follow-up-emails', methods=['POST'])
-@login_required
-def add_follow_up_email():
-    data = request.get_json()
-    name = data.get('name')
-    content = data.get('content')
-    outlet_name = data.get('outlet_name')
-    city = data.get('city')
-
-    if not name or not content:
-        return jsonify({"error": "Name and content are required"}), 400
-
-    conn = database.get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO follow_up_emails (name, content, outlet_name, city) VALUES (?, ?, ?, ?)",
-        (name, content, outlet_name, city)
-    )
-    conn.commit()
-    new_id = cursor.lastrowid
-    conn.close()
-
-    return jsonify({"message": "Follow-up email added successfully", "id": new_id}), 201
-
-@app.route('/api/follow-up-email/<int:email_id>', methods=['GET', 'PUT', 'DELETE'])
-@login_required
-def follow_up_email_by_id(email_id):
-    conn = database.get_db_connection()
-    cursor = conn.cursor()
-
-    if request.method == 'GET':
-        cursor.execute("SELECT id, name, content, outlet_name, city FROM follow_up_emails WHERE id = ?", (email_id,))
-        email = cursor.fetchone()
-        conn.close()
-        if email:
-            return jsonify(dict(email))
-        else:
-            return jsonify({"error": "Follow-up email not found"}), 404
-
-    if request.method == 'PUT':
-        data = request.get_json()
-        name = data.get('name')
-        content = data.get('content')
-        outlet_name = data.get('outlet_name')
-        city = data.get('city')
-
-        if not name or not content:
-            return jsonify({"error": "Name and content are required"}), 400
-
-        cursor.execute(
-            "UPDATE follow_up_emails SET name = ?, content = ?, outlet_name = ?, city = ? WHERE id = ?",
-            (name, content, outlet_name, city, email_id)
-        )
-        conn.commit()
-        conn.close()
-        return jsonify({"message": "Follow-up email updated successfully"})
-
-    if request.method == 'DELETE':
-        cursor.execute("DELETE FROM follow_up_emails WHERE id = ?", (email_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({"message": "Follow-up email deleted successfully"})
-
-@app.route('/add-follow-up', methods=['POST'])
-@login_required
-def add_follow_up():
-    """Handles the form submission for adding a new follow-up email."""
-    name = request.form.get('name')
-    content = request.form.get('content')
-    # The getAll method is used for multi-select fields
-    outlet_names = request.form.getlist('outlet_name')
-    cities = request.form.getlist('city')
-
-    if not name or not content:
-        flash('Subject Line and Content are required.', 'danger')
-        return redirect(url_for('follow_up_email'))
-
-    try:
-        conn = database.get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO follow_up_emails (name, content, outlet_name, city) VALUES (?, ?, ?, ?)",
-            (name, content, json.dumps(outlet_names), json.dumps(cities))
-        )
-        conn.commit()
-        conn.close()
-        flash('Follow-up email created successfully!', 'success')
-    except Exception as e:
-        print(f"Error adding follow-up email: {e}")
-        flash('An error occurred while saving the email.', 'danger')
-
-    return redirect(url_for('follow_up_email'))
-
-@app.route('/delete-follow-up/<int:email_id>', methods=['POST'])
-@login_required
-def delete_follow_up(email_id):
-    """Deletes a follow-up email."""
-    try:
-        conn = database.get_db_connection()
-        conn.execute("DELETE FROM follow_up_emails WHERE id = ?", (email_id,))
-        conn.commit()
-        conn.close()
-        flash('Follow-up email deleted successfully.', 'success')
-    except Exception as e:
-        print(f"Error deleting follow-up email: {e}")
-        flash('An error occurred while deleting the email.', 'danger')
-    return redirect(url_for('follow_up_email'))
-
-@app.route('/edit-follow-up/<int:email_id>', methods=['GET', 'POST'])
-@login_required
-def edit_follow_up(email_id):
-    """Handles editing a follow-up email."""
-    conn = database.get_db_connection()
-
-    if request.method == 'POST':
-        name = request.form.get('name')
-        content = request.form.get('content')
-
-        if not name or not content:
-            flash('Subject Line and Content are required.', 'danger')
-            # It's better to re-render the edit page with an error than to lose the user's edits
-            email = conn.execute("SELECT * FROM follow_up_emails WHERE id = ?", (email_id,)).fetchone()
-            conn.close()
-            return render_template('edit_follow_up.html', email=email)
-
-        try:
-            conn.execute(
-                "UPDATE follow_up_emails SET name = ?, content = ? WHERE id = ?",
-                (name, content, email_id)
-            )
-            conn.commit()
-            flash('Follow-up email updated successfully!', 'success')
-            return redirect(url_for('follow_up_email'))
-        except Exception as e:
-            print(f"Error updating follow-up email: {e}")
-            flash('An error occurred while updating the email.', 'danger')
-        finally:
-            conn.close()
-
-        return redirect(url_for('edit_follow_up', email_id=email_id))
-
-    # GET request
-    email = conn.execute("SELECT * FROM follow_up_emails WHERE id = ?", (email_id,)).fetchone()
-    conn.close()
-    if email is None:
-        flash('Follow-up email not found.', 'danger')
-        return redirect(url_for('follow_up_email'))
-
-    return render_template('edit_follow_up.html', email=email)
 
 # --- Published Reports API Endpoints ---
 @app.route('/api/coverage-reports', methods=['GET'])
@@ -1013,52 +907,6 @@ def delete_staff(staff_id):
 
 
 # --- Webhook API Endpoints ---
-
-@app.route('/api/outreach/send', methods=['POST'])
-@login_required
-def send_outreach():
-    data = request.get_json()
-    press_release_id = data.get('press_release_id')
-    staff_member = data.get('staff_member')
-    outlet_names = data.get('outlet_names')
-
-    if not all([press_release_id, staff_member, outlet_names]):
-        return jsonify({"error": "Missing required data"}), 400
-
-    conn = database.get_db_connection()
-
-    # Fetch email template
-    press_release = conn.execute("SELECT * FROM press_releases WHERE id = ?", (press_release_id,)).fetchone()
-    if not press_release:
-        conn.close()
-        return jsonify({"error": "Press release not found"}), 404
-
-    # Fetch reporters from selected outlets
-    placeholders = ', '.join(['?'] * len(outlet_names))
-    journalists = conn.execute(f"SELECT * FROM journalists WHERE outletName IN ({placeholders})", outlet_names).fetchall()
-    media_titles = conn.execute(f"SELECT * FROM media_titles WHERE outletName IN ({placeholders})", outlet_names).fetchall()
-
-    conn.close()
-
-    # Prepare the payload
-    # Note: The template content might be large. Consider if you need all of it.
-    # The image blob is converted to base64 if it exists.
-    press_release_dict = dict(press_release)
-    if press_release_dict.get('image'):
-        press_release_dict['image'] = base64.b64encode(press_release_dict['image']).decode('utf-8')
-
-
-    payload = {
-        "press_release": press_release_dict,
-        "staff_member": staff_member,
-        "reporters": [dict(j) for j in journalists] + [dict(m) for m in media_titles]
-    }
-
-    success_count = database.send_to_webhook(payload)
-    if success_count > 0:
-        return jsonify({"message": f"Outreach data sent to {success_count} webhook(s) successfully"}), 200
-    else:
-        return jsonify({"error": "Failed to send outreach data to any webhooks"}), 500
 
 @app.route('/api/webhook/send_all', methods=['POST'])
 @login_required

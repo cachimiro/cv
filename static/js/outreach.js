@@ -118,39 +118,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    confirmOutreachBtn.addEventListener('click', async function() {
+    confirmOutreachBtn.addEventListener('click', function() {
         const selectedOutlets = Array.from(document.querySelectorAll('input[name="outlets"]:checked')).map(cb => cb.value);
-        const templateId = window.location.pathname.split('/').pop();
+        const pressReleaseId = window.location.pathname.split('/').pop();
 
         if (!selectedStaff || selectedOutlets.length === 0) {
             showFlashMessage('Please select a staff member and at least one outlet.', 'warning');
             return;
         }
 
-        try {
-            const response = await fetch('/api/outreach/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    template_id: templateId,
-                    staff_member: selectedStaff,
-                    outlet_names: selectedOutlets,
-                }),
-            });
+        const staffId = selectedStaff.id;
+        const outletsQueryString = selectedOutlets.map(outlet => `outlets=${encodeURIComponent(outlet)}`).join('&');
 
-            const result = await response.json();
-
-            if (response.ok) {
-                showFlashMessage('Outreach data sent successfully!', 'success');
-            } else {
-                throw new Error(result.error || 'An unknown error occurred.');
-            }
-        } catch (error) {
-            console.error('Error sending outreach data:', error);
-            showFlashMessage(`Failed to send outreach data: ${error.message}`, 'danger');
-        }
+        // Redirect to the new follow-up page
+        window.location.href = `/outreach/follow-up?press_release_id=${pressReleaseId}&staff_id=${staffId}&${outletsQueryString}`;
     });
 
     loadStaff();

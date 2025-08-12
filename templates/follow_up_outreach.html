@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Follow-up - Sway PR Data{% endblock %}
+{% block page_title %}Create Follow-up{% endblock %}
+
+{% block page_header %}
+    <div class="page-header">
+        <h1>Create Follow-up</h1>
+        <p>Draft a follow-up email for your outreach campaign.</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Follow-up Email Details</h2>
+    </div>
+    <form id="follow-up-form" method="POST">
+        {# Hidden fields to pass along the context #}
+        <input type="hidden" name="press_release_id" value="{{ press_release_id }}">
+        <input type="hidden" name="staff_id" value="{{ staff_id }}">
+        {% for outlet in outlets %}
+        <input type="hidden" name="outlets" value="{{ outlet }}">
+        {% endfor %}
+
+        <div class="form-group">
+            <label for="subject">Subject Line</label>
+            <input type="text" id="subject" name="subject" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="content">Email Content</label>
+            <textarea id="content" name="content" class="form-control" rows="10" required></textarea>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Send Follow-up</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Targeted Media Outlets</h2>
+    </div>
+    <div class="card-content">
+        <p>This follow-up will be associated with the outreach to the following {{ outlets|length }} outlets:</p>
+        <ul class="outlet-list">
+            {% for outlet in outlets %}
+            <li>{{ outlet }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    .outlet-list {
+        list-style-type: none;
+        padding-left: 0;
+        column-count: 3;
+        column-gap: 20px;
+    }
+    .outlet-list li {
+        background-color: #f7f7f7;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
