@@ -37,8 +37,9 @@
         <h2>Select Media Contacts</h2>
         <p>Select the contacts you want to target for this outreach.</p>
 
-        <div class="form-group">
-            <input id="contact-search" type="search" class="form-control" placeholder="Search contacts by name, email, or outlet..." />
+        <div class="form-group" style="display: flex; gap: 1rem; align-items: center;">
+            <input id="contact-search" type="search" class="form-control" placeholder="Search contacts by name, email, or outlet..." style="flex-grow: 1;" />
+            <button id="select-all-visible-btn" class="btn btn-secondary">Select All Visible</button>
         </div>
 
         <div id="contacts-list" class="contact-list-container">
