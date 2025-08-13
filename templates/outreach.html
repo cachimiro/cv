@@ -32,40 +32,19 @@
         </form>
     </div>
 
-    <div id="contact-selection-container" style="display: none;">
+    <div id="media-list-selection-container" style="display: none;">
         <hr>
-        <h2>Select Media Contacts</h2>
-        <p>Select the contacts you want to target for this outreach.</p>
+        <h2>Select Media Lists</h2>
+        <p>Select the media lists you want to target for this outreach.</p>
 
-        <div class="form-group" style="display: flex; gap: 1rem; align-items: center;">
-            <input id="contact-search" type="search" class="form-control" placeholder="Search contacts by name, email, or outlet..." style="flex-grow: 1;" />
-            <button id="select-all-visible-btn" class="btn btn-secondary">Select All Visible</button>
-        </div>
-
-        <div id="contacts-list" class="contact-list-container">
-            <!-- Contacts will be loaded here by JavaScript -->
-        </div>
-
-        <div class="pager">
-            <button id="prev-page-btn" class="btn btn-secondary" disabled>Previous</button>
-            <span id="page-indicator">Page 1 of 1</span>
-            <button id="next-page-btn" class="btn btn-secondary" disabled>Next</button>
-            <select id="page-size-select" class="form-control" style="width: auto; display: inline-block; margin-left: 1rem;">
-                <option value="25">25 per page</option>
-                <option value="50" selected>50 per page</option>
-                <option value="100">100 per page</option>
-            </select>
+        <div id="media-list-container" class="multi-select-container">
+            <!-- Media lists will be loaded here by JavaScript -->
+            <p>Loading media lists...</p>
         </div>
 
         <div class="form-actions">
-            <div id="selection-summary" aria-live="polite">0 contacts selected</div>
-            <button id="confirm-outreach-btn" class="btn btn-primary" disabled>Confirm Selections</button>
+            <button id="confirm-outreach-btn" class="btn btn-primary" disabled>Next: Create Follow-up</button>
         </div>
-
-        <details class="payload-preview-container">
-            <summary>Preview Payload</summary>
-            <pre id="payload-preview"></pre>
-        </details>
     </div>
 </div>
 {% endblock %}

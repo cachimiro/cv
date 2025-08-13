@@ -135,6 +135,49 @@ def outreach_follow_up():
     # This part should not be reached for a POST request, but as a fallback:
     return redirect(url_for('press_releases'))
 
+@app.route('/api/outreach/prepare-follow-up', methods=['POST'])
+@login_required
+def prepare_follow_up():
+    data = request.get_json()
+    press_release_id = data.get('press_release_id')
+    staff_id = data.get('staff_id')
+    upload_ids = data.get('upload_ids')
+
+    if not all([press_release_id, staff_id, upload_ids]):
+        return jsonify({"error": "Missing required data"}), 400
+
+    try:
+        conn = database.get_db_connection()
+
+        placeholders = ','.join('?' for _ in upload_ids)
+
+        query1 = f"SELECT DISTINCT outletName FROM journalists WHERE upload_id IN ({placeholders})"
+        query2 = f"SELECT DISTINCT outletName FROM media_titles WHERE upload_id IN ({placeholders})"
+
+        outlets1 = conn.execute(query1, upload_ids).fetchall()
+        outlets2 = conn.execute(query2, upload_ids).fetchall()
+
+        conn.close()
+
+        unique_outlets = set(row['outletName'] for row in outlets1 if row['outletName'])
+        unique_outlets.update(row['outletName'] for row in outlets2 if row['outletName'])
+
+        # Build the redirect URL
+        redirect_url = url_for(
+            'outreach_follow_up',
+            press_release_id=press_release_id,
+            staff_id=staff_id,
+            # Pass outlets as multiple query parameters
+            **{'outlets': list(unique_outlets)}
+        )
+
+        return jsonify({'redirect_url': redirect_url})
+
+    except Exception as e:
+        print(f"Error preparing follow-up: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
+
+
 @app.route('/upload/<int:upload_id>')
 @login_required
 def upload_data_page(upload_id):
