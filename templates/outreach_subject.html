@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}Outreach Subject - Sway PR Data{% endblock %}
+{% block page_title %}Outreach: Set Subject{% endblock %}
+
+{% block page_header %}
+    <div class="page-header">
+        <h1>Step 1: Set the Subject Line</h1>
+        <p>This will be the subject for your initial outreach email campaign for the press release.</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 700px; margin: 2rem auto;">
+    <div class="card-header">
+        <h2>Enter Subject Line</h2>
+    </div>
+    <form action="{{ url_for('outreach_page', press_release_id=press_release_id) }}" method="GET">
+        <div class="form-group">
+            <label for="subject">Subject Line</label>
+            <input type="text" id="subject" name="subject" class="form-control" required autofocus>
+        </div>
+        <div class="form-actions" style="justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">Next: Select Staff & Lists</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="action-buttons text-right">
                     <button class="btn btn-secondary btn-sm" onclick="viewPressRelease(${press_release.id})"><i class="bi bi-eye-fill"></i> View</button>
                     <button class="btn btn-danger btn-sm" onclick="deletePressRelease(${press_release.id})"><i class="bi bi-trash-fill"></i> Delete</button>
-                    <a href="/outreach/${press_release.id}" class="btn btn-primary btn-sm">Outreach</a>
+                    <a href="/outreach/${press_release.id}/subject" class="btn btn-primary btn-sm">Outreach</a>
                 </td>
             `;
         });

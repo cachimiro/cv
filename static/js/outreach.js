@@ -132,9 +132,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- CONFIRM BUTTON LOGIC ---
     confirmBtn.addEventListener('click', async () => {
         const selectedListIds = Array.from(document.querySelectorAll('input[name="media_lists"]:checked')).map(cb => cb.value);
+        const subject = document.getElementById('outreach-subject').value;
 
         if (!selectedStaff || selectedListIds.length === 0) {
             showFlashMessage('Please select a staff member and at least one media list.', 'warning');
+            return;
+        }
+
+        if (!subject) {
+            showFlashMessage('A subject line is required. Please go back and set one.', 'danger');
             return;
         }
 
@@ -148,7 +154,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     press_release_id: state.pressReleaseId,
                     staff_id: selectedStaff.id,
-                    upload_ids: selectedListIds
+                    upload_ids: selectedListIds,
+                    subject: subject
                 })
             });
 

@@ -67,11 +67,18 @@ def coverage_reports():
     """Serves the coverage reports page."""
     return render_template('coverage_reports.html')
 
+@app.route('/outreach/<int:press_release_id>/subject')
+@login_required
+def outreach_subject_page(press_release_id):
+    """Serves the page to enter the outreach subject line."""
+    return render_template('outreach_subject.html', press_release_id=press_release_id)
+
 @app.route('/outreach/<int:press_release_id>')
 @login_required
 def outreach_page(press_release_id):
     """Serves the outreach page for a specific press release."""
-    return render_template('outreach.html', press_release_id=press_release_id)
+    subject = request.args.get('subject', '')
+    return render_template('outreach.html', press_release_id=press_release_id, subject=subject)
 
 @app.route('/outreach/follow-up', methods=['GET', 'POST'])
 @login_required
@@ -81,16 +88,21 @@ def outreach_follow_up():
         press_release_id = request.args.get('press_release_id')
         staff_id = request.args.get('staff_id')
         outlets = request.args.getlist('outlets')
+        subject = request.args.get('subject', '')
 
-        if not all([press_release_id, staff_id, outlets]):
+        if not all([press_release_id, staff_id, outlets, subject]):
             flash('Missing information for creating a follow-up. Please start the outreach process again.', 'danger')
             return redirect(url_for('press_releases'))
+
+        # Prepare the default follow-up subject
+        follow_up_subject = f"RE: {subject}"
 
         return render_template(
             'follow_up_outreach.html',
             press_release_id=press_release_id,
             staff_id=staff_id,
-            outlets=outlets
+            outlets=outlets,
+            subject=follow_up_subject
         )
 
     if request.method == 'POST':
@@ -142,8 +154,9 @@ def prepare_follow_up():
     press_release_id = data.get('press_release_id')
     staff_id = data.get('staff_id')
     upload_ids = data.get('upload_ids')
+    subject = data.get('subject')
 
-    if not all([press_release_id, staff_id, upload_ids]):
+    if not all([press_release_id, staff_id, upload_ids, subject]):
         return jsonify({"error": "Missing required data"}), 400
 
     try:
@@ -167,6 +180,7 @@ def prepare_follow_up():
             'outreach_follow_up',
             press_release_id=press_release_id,
             staff_id=staff_id,
+            subject=subject,
             # Pass outlets as multiple query parameters
             **{'outlets': list(unique_outlets)}
         )
