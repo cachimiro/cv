@@ -45,7 +45,9 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS uploads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            email_stage TEXT DEFAULT 'Not Started',
+            response_status TEXT DEFAULT 'No Response'
         )
     ''')
 
@@ -98,6 +100,22 @@ def create_tables():
     print("DEBUG: 'media_titles' table creation command executed.")
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_media_titles_email ON media_titles (Email)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_media_titles_outletName ON media_titles (outletName)')
+
+    # Add email_stage and response_status columns to uploads table if they don't exist
+    try:
+        cursor.execute("ALTER TABLE uploads ADD COLUMN email_stage TEXT DEFAULT 'Not Started'")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
+    try:
+        cursor.execute("ALTER TABLE uploads ADD COLUMN response_status TEXT DEFAULT 'No Response'")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e):
+            pass # Column already exists
+        else:
+            raise
 
     # Add upload_id column to journalists table if it doesn't exist
     try:

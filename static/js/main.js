@@ -133,7 +133,16 @@ function renderUploadsList(uploads) {
                     </div>
                 </div>
                 <div class="upload-card-body">
-                    <!-- Future content can go here, like a preview of records -->
+                    <div class="upload-card-details">
+                        <div>
+                            <strong>Email Stage:</strong>
+                            <span>${escapeHTML(upload.email_stage)}</span>
+                        </div>
+                        <div>
+                            <strong>Response Status:</strong>
+                            <span>${escapeHTML(upload.response_status)}</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="upload-card-footer">
                     <button class="btn btn-secondary btn-sm edit-upload-btn" data-id="${upload.id}" data-name="${escapeHTML(upload.name)}">Edit</button>
